@@ -1,4 +1,5 @@
 from typing import Optional, List
+from pydantic import BaseModel, field_validator
 from sqlmodel import Field, SQLModel, Relationship, create_engine
 
 class CPTagLink(SQLModel, table=True):
@@ -16,14 +17,37 @@ class CPBase(SQLModel):
     category: str = Field(min_length=2, max_length=20) # 强制校验：2-10个字符
     link: Optional[str] = Field(default=None, nullable=True)
 
-# --- 2. 数据库表（继承基础字段，加上 table=True） ---
+class TagRead(SQLModel):
+    id: int
+    name: str
+
+class CPRead(CPBase):
+    id: int
+    tags: List[TagRead] = []
+
+class CPResponse(BaseModel):
+    status: str
+    data: List[CPRead] | CPRead
+
+# 1. 专门用于接收前端数据的 Schema (不对应数据库表)
+class CPCreate(CPBase):
+    tag_names: List[str] = Field(min_length=1) # 这个字段只存在于内存，用于接收 POST 数据
+
+    @field_validator("tag_names")
+    @classmethod
+    def check_tags_not_empty(cls, v: List[str]) -> List[str]:
+        if not v or len([name for name in v if name.strip()]) == 0:
+            raise ValueError("At least one non-empty tag is required")
+        return v
+
+# 2. 真正的数据库表模型
 class CP(CPBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    
-    # 关系定义
-    tags: List["Tag"] = Relationship(
-        back_populates="cps", link_model=CPTagLink
-    )
+
+    # 关系 (这才是 SQLAlchemy 认识的 List)
+    tags: List["Tag"] = Relationship(back_populates="cps", link_model=CPTagLink)
+
+
 
 class Tag(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
