@@ -7,6 +7,7 @@ import (
 	"cp-website/ent/cp"
 	"cp-website/ent/predicate"
 	"cp-website/ent/tag"
+	"cp-website/ent/user"
 	"database/sql/driver"
 	"fmt"
 	"math"
@@ -25,6 +26,8 @@ type TagQuery struct {
 	inters     []Interceptor
 	predicates []predicate.Tag
 	withCps    *CPQuery
+	withOwner  *UserQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +79,28 @@ func (_q *TagQuery) QueryCps() *CPQuery {
 			sqlgraph.From(tag.Table, tag.FieldID, selector),
 			sqlgraph.To(cp.Table, cp.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, tag.CpsTable, tag.CpsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOwner chains the current query on the "owner" edge.
+func (_q *TagQuery) QueryOwner() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tag.Table, tag.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, tag.OwnerTable, tag.OwnerColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -276,6 +301,7 @@ func (_q *TagQuery) Clone() *TagQuery {
 		inters:     append([]Interceptor{}, _q.inters...),
 		predicates: append([]predicate.Tag{}, _q.predicates...),
 		withCps:    _q.withCps.Clone(),
+		withOwner:  _q.withOwner.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -290,6 +316,17 @@ func (_q *TagQuery) WithCps(opts ...func(*CPQuery)) *TagQuery {
 		opt(query)
 	}
 	_q.withCps = query
+	return _q
+}
+
+// WithOwner tells the query-builder to eager-load the nodes that are connected to
+// the "owner" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *TagQuery) WithOwner(opts ...func(*UserQuery)) *TagQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withOwner = query
 	return _q
 }
 
@@ -370,11 +407,19 @@ func (_q *TagQuery) prepareQuery(ctx context.Context) error {
 func (_q *TagQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tag, error) {
 	var (
 		nodes       = []*Tag{}
+		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withCps != nil,
+			_q.withOwner != nil,
 		}
 	)
+	if _q.withOwner != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, tag.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Tag).scanValues(nil, columns)
 	}
@@ -397,6 +442,12 @@ func (_q *TagQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tag, err
 		if err := _q.loadCps(ctx, query, nodes,
 			func(n *Tag) { n.Edges.Cps = []*CP{} },
 			func(n *Tag, e *CP) { n.Edges.Cps = append(n.Edges.Cps, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withOwner; query != nil {
+		if err := _q.loadOwner(ctx, query, nodes, nil,
+			func(n *Tag, e *User) { n.Edges.Owner = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -460,6 +511,38 @@ func (_q *TagQuery) loadCps(ctx context.Context, query *CPQuery, nodes []*Tag, i
 		}
 		for kn := range nodes {
 			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (_q *TagQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*Tag, init func(*Tag), assign func(*Tag, *User)) error {
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*Tag)
+	for i := range nodes {
+		if nodes[i].user_tags == nil {
+			continue
+		}
+		fk := *nodes[i].user_tags
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_tags" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil

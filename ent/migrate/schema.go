@@ -14,23 +14,52 @@ var (
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "category", Type: field.TypeString, Size: 20},
 		{Name: "link", Type: field.TypeString, Nullable: true},
+		{Name: "user_cps", Type: field.TypeInt64},
 	}
 	// CpsTable holds the schema information for the "cps" table.
 	CpsTable = &schema.Table{
 		Name:       "cps",
 		Columns:    CpsColumns,
 		PrimaryKey: []*schema.Column{CpsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "cps_users_cps",
+				Columns:    []*schema.Column{CpsColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
 	}
 	// TagsColumns holds the columns for the "tags" table.
 	TagsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "user_tags", Type: field.TypeInt64},
 	}
 	// TagsTable holds the schema information for the "tags" table.
 	TagsTable = &schema.Table{
 		Name:       "tags",
 		Columns:    TagsColumns,
 		PrimaryKey: []*schema.Column{TagsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tags_users_tags",
+				Columns:    []*schema.Column{TagsColumns[2]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// UsersColumns holds the columns for the "users" table.
+	UsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "sub", Type: field.TypeString, Unique: true},
+	}
+	// UsersTable holds the schema information for the "users" table.
+	UsersTable = &schema.Table{
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
 	// CpTagsColumns holds the columns for the "cp_tags" table.
 	CpTagsColumns = []*schema.Column{
@@ -61,11 +90,14 @@ var (
 	Tables = []*schema.Table{
 		CpsTable,
 		TagsTable,
+		UsersTable,
 		CpTagsTable,
 	}
 )
 
 func init() {
+	CpsTable.ForeignKeys[0].RefTable = UsersTable
+	TagsTable.ForeignKeys[0].RefTable = UsersTable
 	CpTagsTable.ForeignKeys[0].RefTable = CpsTable
 	CpTagsTable.ForeignKeys[1].RefTable = TagsTable
 }

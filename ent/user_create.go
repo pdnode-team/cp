@@ -14,27 +14,27 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// TagCreate is the builder for creating a Tag entity.
-type TagCreate struct {
+// UserCreate is the builder for creating a User entity.
+type UserCreate struct {
 	config
-	mutation *TagMutation
+	mutation *UserMutation
 	hooks    []Hook
 }
 
-// SetName sets the "name" field.
-func (_c *TagCreate) SetName(v string) *TagCreate {
-	_c.mutation.SetName(v)
+// SetSub sets the "sub" field.
+func (_c *UserCreate) SetSub(v string) *UserCreate {
+	_c.mutation.SetSub(v)
 	return _c
 }
 
 // SetID sets the "id" field.
-func (_c *TagCreate) SetID(v int64) *TagCreate {
+func (_c *UserCreate) SetID(v int64) *UserCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
 
 // SetNillableID sets the "id" field if the given value is not nil.
-func (_c *TagCreate) SetNillableID(v *int64) *TagCreate {
+func (_c *UserCreate) SetNillableID(v *int64) *UserCreate {
 	if v != nil {
 		_c.SetID(*v)
 	}
@@ -42,13 +42,13 @@ func (_c *TagCreate) SetNillableID(v *int64) *TagCreate {
 }
 
 // AddCpIDs adds the "cps" edge to the CP entity by IDs.
-func (_c *TagCreate) AddCpIDs(ids ...int64) *TagCreate {
+func (_c *UserCreate) AddCpIDs(ids ...int64) *UserCreate {
 	_c.mutation.AddCpIDs(ids...)
 	return _c
 }
 
 // AddCps adds the "cps" edges to the CP entity.
-func (_c *TagCreate) AddCps(v ...*CP) *TagCreate {
+func (_c *UserCreate) AddCps(v ...*CP) *UserCreate {
 	ids := make([]int64, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
@@ -56,30 +56,34 @@ func (_c *TagCreate) AddCps(v ...*CP) *TagCreate {
 	return _c.AddCpIDs(ids...)
 }
 
-// SetOwnerID sets the "owner" edge to the User entity by ID.
-func (_c *TagCreate) SetOwnerID(id int64) *TagCreate {
-	_c.mutation.SetOwnerID(id)
+// AddTagIDs adds the "tags" edge to the Tag entity by IDs.
+func (_c *UserCreate) AddTagIDs(ids ...int64) *UserCreate {
+	_c.mutation.AddTagIDs(ids...)
 	return _c
 }
 
-// SetOwner sets the "owner" edge to the User entity.
-func (_c *TagCreate) SetOwner(v *User) *TagCreate {
-	return _c.SetOwnerID(v.ID)
+// AddTags adds the "tags" edges to the Tag entity.
+func (_c *UserCreate) AddTags(v ...*Tag) *UserCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTagIDs(ids...)
 }
 
-// Mutation returns the TagMutation object of the builder.
-func (_c *TagCreate) Mutation() *TagMutation {
+// Mutation returns the UserMutation object of the builder.
+func (_c *UserCreate) Mutation() *UserMutation {
 	return _c.mutation
 }
 
-// Save creates the Tag in the database.
-func (_c *TagCreate) Save(ctx context.Context) (*Tag, error) {
+// Save creates the User in the database.
+func (_c *UserCreate) Save(ctx context.Context) (*User, error) {
 	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (_c *TagCreate) SaveX(ctx context.Context) *Tag {
+func (_c *UserCreate) SaveX(ctx context.Context) *User {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -88,43 +92,40 @@ func (_c *TagCreate) SaveX(ctx context.Context) *Tag {
 }
 
 // Exec executes the query.
-func (_c *TagCreate) Exec(ctx context.Context) error {
+func (_c *UserCreate) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *TagCreate) ExecX(ctx context.Context) {
+func (_c *UserCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *TagCreate) defaults() {
+func (_c *UserCreate) defaults() {
 	if _, ok := _c.mutation.ID(); !ok {
-		v := tag.DefaultID()
+		v := user.DefaultID()
 		_c.mutation.SetID(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_c *TagCreate) check() error {
-	if _, ok := _c.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Tag.name"`)}
+func (_c *UserCreate) check() error {
+	if _, ok := _c.mutation.Sub(); !ok {
+		return &ValidationError{Name: "sub", err: errors.New(`ent: missing required field "User.sub"`)}
 	}
-	if v, ok := _c.mutation.Name(); ok {
-		if err := tag.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Tag.name": %w`, err)}
+	if v, ok := _c.mutation.Sub(); ok {
+		if err := user.SubValidator(v); err != nil {
+			return &ValidationError{Name: "sub", err: fmt.Errorf(`ent: validator failed for field "User.sub": %w`, err)}
 		}
-	}
-	if len(_c.mutation.OwnerIDs()) == 0 {
-		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Tag.owner"`)}
 	}
 	return nil
 }
 
-func (_c *TagCreate) sqlSave(ctx context.Context) (*Tag, error) {
+func (_c *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 	if err := _c.check(); err != nil {
 		return nil, err
 	}
@@ -144,25 +145,25 @@ func (_c *TagCreate) sqlSave(ctx context.Context) (*Tag, error) {
 	return _node, nil
 }
 
-func (_c *TagCreate) createSpec() (*Tag, *sqlgraph.CreateSpec) {
+func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	var (
-		_node = &Tag{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(tag.Table, sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt64))
+		_node = &User{config: _c.config}
+		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64))
 	)
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := _c.mutation.Name(); ok {
-		_spec.SetField(tag.FieldName, field.TypeString, value)
-		_node.Name = value
+	if value, ok := _c.mutation.Sub(); ok {
+		_spec.SetField(user.FieldSub, field.TypeString, value)
+		_node.Sub = value
 	}
 	if nodes := _c.mutation.CpsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   tag.CpsTable,
-			Columns: tag.CpsPrimaryKey,
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CpsTable,
+			Columns: []string{user.CpsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cp.FieldID, field.TypeInt64),
@@ -173,47 +174,46 @@ func (_c *TagCreate) createSpec() (*Tag, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.OwnerIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.TagsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   tag.OwnerTable,
-			Columns: []string{tag.OwnerColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.TagsTable,
+			Columns: []string{user.TagsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_tags = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
 
-// TagCreateBulk is the builder for creating many Tag entities in bulk.
-type TagCreateBulk struct {
+// UserCreateBulk is the builder for creating many User entities in bulk.
+type UserCreateBulk struct {
 	config
 	err      error
-	builders []*TagCreate
+	builders []*UserCreate
 }
 
-// Save creates the Tag entities in the database.
-func (_c *TagCreateBulk) Save(ctx context.Context) ([]*Tag, error) {
+// Save creates the User entities in the database.
+func (_c *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 	if _c.err != nil {
 		return nil, _c.err
 	}
 	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
-	nodes := make([]*Tag, len(_c.builders))
+	nodes := make([]*User, len(_c.builders))
 	mutators := make([]Mutator, len(_c.builders))
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				mutation, ok := m.(*TagMutation)
+				mutation, ok := m.(*UserMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
 				}
@@ -260,7 +260,7 @@ func (_c *TagCreateBulk) Save(ctx context.Context) ([]*Tag, error) {
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_c *TagCreateBulk) SaveX(ctx context.Context) []*Tag {
+func (_c *UserCreateBulk) SaveX(ctx context.Context) []*User {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -269,13 +269,13 @@ func (_c *TagCreateBulk) SaveX(ctx context.Context) []*Tag {
 }
 
 // Exec executes the query.
-func (_c *TagCreateBulk) Exec(ctx context.Context) error {
+func (_c *UserCreateBulk) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *TagCreateBulk) ExecX(ctx context.Context) {
+func (_c *UserCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}

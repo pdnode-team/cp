@@ -16,6 +16,8 @@ const (
 	FieldName = "name"
 	// EdgeCps holds the string denoting the cps edge name in mutations.
 	EdgeCps = "cps"
+	// EdgeOwner holds the string denoting the owner edge name in mutations.
+	EdgeOwner = "owner"
 	// Table holds the table name of the tag in the database.
 	Table = "tags"
 	// CpsTable is the table that holds the cps relation/edge. The primary key declared below.
@@ -23,12 +25,25 @@ const (
 	// CpsInverseTable is the table name for the CP entity.
 	// It exists in this package in order to avoid circular dependency with the "cp" package.
 	CpsInverseTable = "cps"
+	// OwnerTable is the table that holds the owner relation/edge.
+	OwnerTable = "tags"
+	// OwnerInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	OwnerInverseTable = "users"
+	// OwnerColumn is the table column denoting the owner relation/edge.
+	OwnerColumn = "user_tags"
 )
 
 // Columns holds all SQL columns for tag fields.
 var Columns = []string{
 	FieldID,
 	FieldName,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "tags"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"user_tags",
 }
 
 var (
@@ -41,6 +56,11 @@ var (
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -80,10 +100,24 @@ func ByCps(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCpsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByOwnerField orders the results by owner field.
+func ByOwnerField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOwnerStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newCpsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CpsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, true, CpsTable, CpsPrimaryKey...),
+	)
+}
+func newOwnerStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OwnerInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
 	)
 }

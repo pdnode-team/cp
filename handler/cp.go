@@ -16,7 +16,7 @@ import (
 )
 
 // 此函数负责查重、创建新标签，并返回所有相关标签的 ID 列表
-func syncTags(ctx context.Context, client *ent.Client, names []string) ([]int64, error) {
+func syncTags(ctx context.Context, client *ent.Client, names []string, dbUser *ent.User) ([]int64, error) {
 	// 1. 去重并剔除空字符串
 	uniqueNames := make(map[string]bool)
 	for _, n := range names {
@@ -51,7 +51,7 @@ func syncTags(ctx context.Context, client *ent.Client, names []string) ([]int64,
 	var newCreates []*ent.TagCreate
 	for _, n := range nameList {
 		if _, exists := existingMap[n]; !exists {
-			newCreates = append(newCreates, client.Tag.Create().SetName(n))
+			newCreates = append(newCreates, client.Tag.Create().SetName(n).SetOwner(dbUser))
 		}
 	}
 
@@ -102,6 +102,7 @@ func CreateCP(client *ent.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
 		req := new(model.CPReq) // 注意这里引用了 model 包
+		dbUser := c.Get("user").(*ent.User)
 
 		if err := c.Bind(req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -118,7 +119,7 @@ func CreateCP(client *ent.Client) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, "The CP name already exists.")
 		}
 
-		tagIDs, err := syncTags(ctx, client, req.TagNames)
+		tagIDs, err := syncTags(ctx, client, req.TagNames, dbUser)
 		if err != nil {
 			return err
 		}
@@ -126,6 +127,7 @@ func CreateCP(client *ent.Client) echo.HandlerFunc {
 		builder := client.CP.Create().
 			SetName(req.Name).
 			SetCategory(req.Category).
+			SetOwner(dbUser).
 			AddTagIDs(tagIDs...)
 
 		if req.Link != nil {
@@ -165,6 +167,7 @@ func UpdateCP(client *ent.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
 		id := ParseID(c.Param("id"))
+		dbUser := c.Get("user").(*ent.User)
 
 		req := new(model.CPReq)
 		if err := c.Bind(req); err != nil {
@@ -174,7 +177,7 @@ func UpdateCP(client *ent.Client) echo.HandlerFunc {
 			return echo.NewHTTPError(400, err.Error())
 		}
 
-		tagIDs, err := syncTags(ctx, client, req.TagNames)
+		tagIDs, err := syncTags(ctx, client, req.TagNames, dbUser)
 		if err != nil {
 			return err
 		}

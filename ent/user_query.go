@@ -18,54 +18,75 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// CPQuery is the builder for querying CP entities.
-type CPQuery struct {
+// UserQuery is the builder for querying User entities.
+type UserQuery struct {
 	config
 	ctx        *QueryContext
-	order      []cp.OrderOption
+	order      []user.OrderOption
 	inters     []Interceptor
-	predicates []predicate.CP
+	predicates []predicate.User
+	withCps    *CPQuery
 	withTags   *TagQuery
-	withOwner  *UserQuery
-	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the CPQuery builder.
-func (_q *CPQuery) Where(ps ...predicate.CP) *CPQuery {
+// Where adds a new predicate for the UserQuery builder.
+func (_q *UserQuery) Where(ps ...predicate.User) *UserQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *CPQuery) Limit(limit int) *CPQuery {
+func (_q *UserQuery) Limit(limit int) *UserQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *CPQuery) Offset(offset int) *CPQuery {
+func (_q *UserQuery) Offset(offset int) *UserQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *CPQuery) Unique(unique bool) *CPQuery {
+func (_q *UserQuery) Unique(unique bool) *UserQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *CPQuery) Order(o ...cp.OrderOption) *CPQuery {
+func (_q *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
+// QueryCps chains the current query on the "cps" edge.
+func (_q *UserQuery) QueryCps() *CPQuery {
+	query := (&CPClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(cp.Table, cp.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CpsTable, user.CpsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryTags chains the current query on the "tags" edge.
-func (_q *CPQuery) QueryTags() *TagQuery {
+func (_q *UserQuery) QueryTags() *TagQuery {
 	query := (&TagClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -76,9 +97,9 @@ func (_q *CPQuery) QueryTags() *TagQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(cp.Table, cp.FieldID, selector),
+			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(tag.Table, tag.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, cp.TagsTable, cp.TagsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.TagsTable, user.TagsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -86,43 +107,21 @@ func (_q *CPQuery) QueryTags() *TagQuery {
 	return query
 }
 
-// QueryOwner chains the current query on the "owner" edge.
-func (_q *CPQuery) QueryOwner() *UserQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(cp.Table, cp.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, cp.OwnerTable, cp.OwnerColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// First returns the first CP entity from the query.
-// Returns a *NotFoundError when no CP was found.
-func (_q *CPQuery) First(ctx context.Context) (*CP, error) {
+// First returns the first User entity from the query.
+// Returns a *NotFoundError when no User was found.
+func (_q *UserQuery) First(ctx context.Context) (*User, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{cp.Label}
+		return nil, &NotFoundError{user.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *CPQuery) FirstX(ctx context.Context) *CP {
+func (_q *UserQuery) FirstX(ctx context.Context) *User {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -130,22 +129,22 @@ func (_q *CPQuery) FirstX(ctx context.Context) *CP {
 	return node
 }
 
-// FirstID returns the first CP ID from the query.
-// Returns a *NotFoundError when no CP ID was found.
-func (_q *CPQuery) FirstID(ctx context.Context) (id int64, err error) {
+// FirstID returns the first User ID from the query.
+// Returns a *NotFoundError when no User ID was found.
+func (_q *UserQuery) FirstID(ctx context.Context) (id int64, err error) {
 	var ids []int64
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{cp.Label}
+		err = &NotFoundError{user.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *CPQuery) FirstIDX(ctx context.Context) int64 {
+func (_q *UserQuery) FirstIDX(ctx context.Context) int64 {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -153,10 +152,10 @@ func (_q *CPQuery) FirstIDX(ctx context.Context) int64 {
 	return id
 }
 
-// Only returns a single CP entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one CP entity is found.
-// Returns a *NotFoundError when no CP entities are found.
-func (_q *CPQuery) Only(ctx context.Context) (*CP, error) {
+// Only returns a single User entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one User entity is found.
+// Returns a *NotFoundError when no User entities are found.
+func (_q *UserQuery) Only(ctx context.Context) (*User, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -165,14 +164,14 @@ func (_q *CPQuery) Only(ctx context.Context) (*CP, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{cp.Label}
+		return nil, &NotFoundError{user.Label}
 	default:
-		return nil, &NotSingularError{cp.Label}
+		return nil, &NotSingularError{user.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *CPQuery) OnlyX(ctx context.Context) *CP {
+func (_q *UserQuery) OnlyX(ctx context.Context) *User {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -180,10 +179,10 @@ func (_q *CPQuery) OnlyX(ctx context.Context) *CP {
 	return node
 }
 
-// OnlyID is like Only, but returns the only CP ID in the query.
-// Returns a *NotSingularError when more than one CP ID is found.
+// OnlyID is like Only, but returns the only User ID in the query.
+// Returns a *NotSingularError when more than one User ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *CPQuery) OnlyID(ctx context.Context) (id int64, err error) {
+func (_q *UserQuery) OnlyID(ctx context.Context) (id int64, err error) {
 	var ids []int64
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -192,15 +191,15 @@ func (_q *CPQuery) OnlyID(ctx context.Context) (id int64, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{cp.Label}
+		err = &NotFoundError{user.Label}
 	default:
-		err = &NotSingularError{cp.Label}
+		err = &NotSingularError{user.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *CPQuery) OnlyIDX(ctx context.Context) int64 {
+func (_q *UserQuery) OnlyIDX(ctx context.Context) int64 {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -208,18 +207,18 @@ func (_q *CPQuery) OnlyIDX(ctx context.Context) int64 {
 	return id
 }
 
-// All executes the query and returns a list of CPs.
-func (_q *CPQuery) All(ctx context.Context) ([]*CP, error) {
+// All executes the query and returns a list of Users.
+func (_q *UserQuery) All(ctx context.Context) ([]*User, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*CP, *CPQuery]()
-	return withInterceptors[[]*CP](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*User, *UserQuery]()
+	return withInterceptors[[]*User](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *CPQuery) AllX(ctx context.Context) []*CP {
+func (_q *UserQuery) AllX(ctx context.Context) []*User {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -227,20 +226,20 @@ func (_q *CPQuery) AllX(ctx context.Context) []*CP {
 	return nodes
 }
 
-// IDs executes the query and returns a list of CP IDs.
-func (_q *CPQuery) IDs(ctx context.Context) (ids []int64, err error) {
+// IDs executes the query and returns a list of User IDs.
+func (_q *UserQuery) IDs(ctx context.Context) (ids []int64, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(cp.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(user.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *CPQuery) IDsX(ctx context.Context) []int64 {
+func (_q *UserQuery) IDsX(ctx context.Context) []int64 {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -249,16 +248,16 @@ func (_q *CPQuery) IDsX(ctx context.Context) []int64 {
 }
 
 // Count returns the count of the given query.
-func (_q *CPQuery) Count(ctx context.Context) (int, error) {
+func (_q *UserQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*CPQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*UserQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *CPQuery) CountX(ctx context.Context) int {
+func (_q *UserQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -267,7 +266,7 @@ func (_q *CPQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *CPQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *UserQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -280,7 +279,7 @@ func (_q *CPQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *CPQuery) ExistX(ctx context.Context) bool {
+func (_q *UserQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -288,45 +287,45 @@ func (_q *CPQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the CPQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the UserQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *CPQuery) Clone() *CPQuery {
+func (_q *UserQuery) Clone() *UserQuery {
 	if _q == nil {
 		return nil
 	}
-	return &CPQuery{
+	return &UserQuery{
 		config:     _q.config,
 		ctx:        _q.ctx.Clone(),
-		order:      append([]cp.OrderOption{}, _q.order...),
+		order:      append([]user.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.CP{}, _q.predicates...),
+		predicates: append([]predicate.User{}, _q.predicates...),
+		withCps:    _q.withCps.Clone(),
 		withTags:   _q.withTags.Clone(),
-		withOwner:  _q.withOwner.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
 }
 
+// WithCps tells the query-builder to eager-load the nodes that are connected to
+// the "cps" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithCps(opts ...func(*CPQuery)) *UserQuery {
+	query := (&CPClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCps = query
+	return _q
+}
+
 // WithTags tells the query-builder to eager-load the nodes that are connected to
 // the "tags" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *CPQuery) WithTags(opts ...func(*TagQuery)) *CPQuery {
+func (_q *UserQuery) WithTags(opts ...func(*TagQuery)) *UserQuery {
 	query := (&TagClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
 	_q.withTags = query
-	return _q
-}
-
-// WithOwner tells the query-builder to eager-load the nodes that are connected to
-// the "owner" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *CPQuery) WithOwner(opts ...func(*UserQuery)) *CPQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withOwner = query
 	return _q
 }
 
@@ -336,19 +335,19 @@ func (_q *CPQuery) WithOwner(opts ...func(*UserQuery)) *CPQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Sub string `json:"sub,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.CP.Query().
-//		GroupBy(cp.FieldName).
+//	client.User.Query().
+//		GroupBy(user.FieldSub).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *CPQuery) GroupBy(field string, fields ...string) *CPGroupBy {
+func (_q *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &CPGroupBy{build: _q}
+	grbuild := &UserGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = cp.Label
+	grbuild.label = user.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -359,26 +358,26 @@ func (_q *CPQuery) GroupBy(field string, fields ...string) *CPGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Sub string `json:"sub,omitempty"`
 //	}
 //
-//	client.CP.Query().
-//		Select(cp.FieldName).
+//	client.User.Query().
+//		Select(user.FieldSub).
 //		Scan(ctx, &v)
-func (_q *CPQuery) Select(fields ...string) *CPSelect {
+func (_q *UserQuery) Select(fields ...string) *UserSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &CPSelect{CPQuery: _q}
-	sbuild.label = cp.Label
+	sbuild := &UserSelect{UserQuery: _q}
+	sbuild.label = user.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a CPSelect configured with the given aggregations.
-func (_q *CPQuery) Aggregate(fns ...AggregateFunc) *CPSelect {
+// Aggregate returns a UserSelect configured with the given aggregations.
+func (_q *UserQuery) Aggregate(fns ...AggregateFunc) *UserSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *CPQuery) prepareQuery(ctx context.Context) error {
+func (_q *UserQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -390,7 +389,7 @@ func (_q *CPQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !cp.ValidColumn(f) {
+		if !user.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -404,27 +403,20 @@ func (_q *CPQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *CPQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*CP, error) {
+func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, error) {
 	var (
-		nodes       = []*CP{}
-		withFKs     = _q.withFKs
+		nodes       = []*User{}
 		_spec       = _q.querySpec()
 		loadedTypes = [2]bool{
+			_q.withCps != nil,
 			_q.withTags != nil,
-			_q.withOwner != nil,
 		}
 	)
-	if _q.withOwner != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, cp.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*CP).scanValues(nil, columns)
+		return (*User).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &CP{config: _q.config}
+		node := &User{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -438,117 +430,87 @@ func (_q *CPQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*CP, error
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withTags; query != nil {
-		if err := _q.loadTags(ctx, query, nodes,
-			func(n *CP) { n.Edges.Tags = []*Tag{} },
-			func(n *CP, e *Tag) { n.Edges.Tags = append(n.Edges.Tags, e) }); err != nil {
+	if query := _q.withCps; query != nil {
+		if err := _q.loadCps(ctx, query, nodes,
+			func(n *User) { n.Edges.Cps = []*CP{} },
+			func(n *User, e *CP) { n.Edges.Cps = append(n.Edges.Cps, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := _q.withOwner; query != nil {
-		if err := _q.loadOwner(ctx, query, nodes, nil,
-			func(n *CP, e *User) { n.Edges.Owner = e }); err != nil {
+	if query := _q.withTags; query != nil {
+		if err := _q.loadTags(ctx, query, nodes,
+			func(n *User) { n.Edges.Tags = []*Tag{} },
+			func(n *User, e *Tag) { n.Edges.Tags = append(n.Edges.Tags, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *CPQuery) loadTags(ctx context.Context, query *TagQuery, nodes []*CP, init func(*CP), assign func(*CP, *Tag)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int64]*CP)
-	nids := make(map[int64]map[*CP]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
-		if init != nil {
-			init(node)
-		}
-	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(cp.TagsTable)
-		s.Join(joinT).On(s.C(tag.FieldID), joinT.C(cp.TagsPrimaryKey[1]))
-		s.Where(sql.InValues(joinT.C(cp.TagsPrimaryKey[0]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(cp.TagsPrimaryKey[0]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
-	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(sql.NullInt64)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := values[0].(*sql.NullInt64).Int64
-				inValue := values[1].(*sql.NullInt64).Int64
-				if nids[inValue] == nil {
-					nids[inValue] = map[*CP]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*Tag](ctx, query, qr, query.inters)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected "tags" node returned %v`, n.ID)
-		}
-		for kn := range nodes {
-			assign(kn, n)
-		}
-	}
-	return nil
-}
-func (_q *CPQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*CP, init func(*CP), assign func(*CP, *User)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*CP)
+func (_q *UserQuery) loadCps(ctx context.Context, query *CPQuery, nodes []*User, init func(*User), assign func(*User, *CP)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*User)
 	for i := range nodes {
-		if nodes[i].user_cps == nil {
-			continue
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
 		}
-		fk := *nodes[i].user_cps
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
+	query.withFKs = true
+	query.Where(predicate.CP(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CpsColumn), fks...))
+	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
+		fk := n.user_cps
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_cps" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_cps" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_cps" returned %v for node %v`, *fk, n.ID)
 		}
-		for i := range nodes {
-			assign(nodes[i], n)
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadTags(ctx context.Context, query *TagQuery, nodes []*User, init func(*User), assign func(*User, *Tag)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
 		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Tag(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.TagsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_tags
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_tags" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_tags" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
 
-func (_q *CPQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *UserQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -557,8 +519,8 @@ func (_q *CPQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *CPQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(cp.Table, cp.Columns, sqlgraph.NewFieldSpec(cp.FieldID, field.TypeInt64))
+func (_q *UserQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -567,9 +529,9 @@ func (_q *CPQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, cp.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, user.FieldID)
 		for i := range fields {
-			if fields[i] != cp.FieldID {
+			if fields[i] != user.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
@@ -597,12 +559,12 @@ func (_q *CPQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *CPQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(cp.Table)
+	t1 := builder.Table(user.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = cp.Columns
+		columns = user.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -629,28 +591,28 @@ func (_q *CPQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// CPGroupBy is the group-by builder for CP entities.
-type CPGroupBy struct {
+// UserGroupBy is the group-by builder for User entities.
+type UserGroupBy struct {
 	selector
-	build *CPQuery
+	build *UserQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *CPGroupBy) Aggregate(fns ...AggregateFunc) *CPGroupBy {
+func (_g *UserGroupBy) Aggregate(fns ...AggregateFunc) *UserGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *CPGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *UserGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*CPQuery, *CPGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*UserQuery, *UserGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *CPGroupBy) sqlScan(ctx context.Context, root *CPQuery, v any) error {
+func (_g *UserGroupBy) sqlScan(ctx context.Context, root *UserQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -677,28 +639,28 @@ func (_g *CPGroupBy) sqlScan(ctx context.Context, root *CPQuery, v any) error {
 	return sql.ScanSlice(rows, v)
 }
 
-// CPSelect is the builder for selecting fields of CP entities.
-type CPSelect struct {
-	*CPQuery
+// UserSelect is the builder for selecting fields of User entities.
+type UserSelect struct {
+	*UserQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *CPSelect) Aggregate(fns ...AggregateFunc) *CPSelect {
+func (_s *UserSelect) Aggregate(fns ...AggregateFunc) *UserSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *CPSelect) Scan(ctx context.Context, v any) error {
+func (_s *UserSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*CPQuery, *CPSelect](ctx, _s.CPQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*UserQuery, *UserSelect](ctx, _s.UserQuery, _s, _s.inters, v)
 }
 
-func (_s *CPSelect) sqlScan(ctx context.Context, root *CPQuery, v any) error {
+func (_s *UserSelect) sqlScan(ctx context.Context, root *UserQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

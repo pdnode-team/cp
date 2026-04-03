@@ -6,6 +6,7 @@ import (
 	"cp-website/ent/cp"
 	"cp-website/ent/schema"
 	"cp-website/ent/tag"
+	"cp-website/ent/user"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -50,4 +51,14 @@ func init() {
 	tagDescID := tagFields[0].Descriptor()
 	// tag.DefaultID holds the default value on creation for the id field.
 	tag.DefaultID = tagDescID.Default.(func() int64)
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescSub is the schema descriptor for sub field.
+	userDescSub := userFields[1].Descriptor()
+	// user.SubValidator is a validator for the "sub" field. It is called by the builders before save.
+	user.SubValidator = userDescSub.Validators[0].(func(string) error)
+	// userDescID is the schema descriptor for id field.
+	userDescID := userFields[0].Descriptor()
+	// user.DefaultID holds the default value on creation for the id field.
+	user.DefaultID = userDescID.Default.(func() int64)
 }

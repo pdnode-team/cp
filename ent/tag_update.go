@@ -7,6 +7,7 @@ import (
 	"cp-website/ent/cp"
 	"cp-website/ent/predicate"
 	"cp-website/ent/tag"
+	"cp-website/ent/user"
 	"errors"
 	"fmt"
 
@@ -57,6 +58,17 @@ func (_u *TagUpdate) AddCps(v ...*CP) *TagUpdate {
 	return _u.AddCpIDs(ids...)
 }
 
+// SetOwnerID sets the "owner" edge to the User entity by ID.
+func (_u *TagUpdate) SetOwnerID(id int64) *TagUpdate {
+	_u.mutation.SetOwnerID(id)
+	return _u
+}
+
+// SetOwner sets the "owner" edge to the User entity.
+func (_u *TagUpdate) SetOwner(v *User) *TagUpdate {
+	return _u.SetOwnerID(v.ID)
+}
+
 // Mutation returns the TagMutation object of the builder.
 func (_u *TagUpdate) Mutation() *TagMutation {
 	return _u.mutation
@@ -81,6 +93,12 @@ func (_u *TagUpdate) RemoveCps(v ...*CP) *TagUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCpIDs(ids...)
+}
+
+// ClearOwner clears the "owner" edge to the User entity.
+func (_u *TagUpdate) ClearOwner() *TagUpdate {
+	_u.mutation.ClearOwner()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -116,6 +134,9 @@ func (_u *TagUpdate) check() error {
 		if err := tag.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Tag.name": %w`, err)}
 		}
+	}
+	if _u.mutation.OwnerCleared() && len(_u.mutation.OwnerIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Tag.owner"`)
 	}
 	return nil
 }
@@ -180,6 +201,35 @@ func (_u *TagUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.OwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   tag.OwnerTable,
+			Columns: []string{tag.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   tag.OwnerTable,
+			Columns: []string{tag.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{tag.Label}
@@ -229,6 +279,17 @@ func (_u *TagUpdateOne) AddCps(v ...*CP) *TagUpdateOne {
 	return _u.AddCpIDs(ids...)
 }
 
+// SetOwnerID sets the "owner" edge to the User entity by ID.
+func (_u *TagUpdateOne) SetOwnerID(id int64) *TagUpdateOne {
+	_u.mutation.SetOwnerID(id)
+	return _u
+}
+
+// SetOwner sets the "owner" edge to the User entity.
+func (_u *TagUpdateOne) SetOwner(v *User) *TagUpdateOne {
+	return _u.SetOwnerID(v.ID)
+}
+
 // Mutation returns the TagMutation object of the builder.
 func (_u *TagUpdateOne) Mutation() *TagMutation {
 	return _u.mutation
@@ -253,6 +314,12 @@ func (_u *TagUpdateOne) RemoveCps(v ...*CP) *TagUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCpIDs(ids...)
+}
+
+// ClearOwner clears the "owner" edge to the User entity.
+func (_u *TagUpdateOne) ClearOwner() *TagUpdateOne {
+	_u.mutation.ClearOwner()
+	return _u
 }
 
 // Where appends a list predicates to the TagUpdate builder.
@@ -301,6 +368,9 @@ func (_u *TagUpdateOne) check() error {
 		if err := tag.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Tag.name": %w`, err)}
 		}
+	}
+	if _u.mutation.OwnerCleared() && len(_u.mutation.OwnerIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Tag.owner"`)
 	}
 	return nil
 }
@@ -375,6 +445,35 @@ func (_u *TagUpdateOne) sqlSave(ctx context.Context) (_node *Tag, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(cp.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.OwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   tag.OwnerTable,
+			Columns: []string{tag.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   tag.OwnerTable,
+			Columns: []string{tag.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

@@ -6,6 +6,7 @@ import (
 	"context"
 	"cp-website/ent/cp"
 	"cp-website/ent/tag"
+	"cp-website/ent/user"
 	"errors"
 	"fmt"
 
@@ -75,6 +76,17 @@ func (_c *CPCreate) AddTags(v ...*Tag) *CPCreate {
 	return _c.AddTagIDs(ids...)
 }
 
+// SetOwnerID sets the "owner" edge to the User entity by ID.
+func (_c *CPCreate) SetOwnerID(id int64) *CPCreate {
+	_c.mutation.SetOwnerID(id)
+	return _c
+}
+
+// SetOwner sets the "owner" edge to the User entity.
+func (_c *CPCreate) SetOwner(v *User) *CPCreate {
+	return _c.SetOwnerID(v.ID)
+}
+
 // Mutation returns the CPMutation object of the builder.
 func (_c *CPCreate) Mutation() *CPMutation {
 	return _c.mutation
@@ -134,6 +146,9 @@ func (_c *CPCreate) check() error {
 			return &ValidationError{Name: "category", err: fmt.Errorf(`ent: validator failed for field "CP.category": %w`, err)}
 		}
 	}
+	if len(_c.mutation.OwnerIDs()) == 0 {
+		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "CP.owner"`)}
+	}
 	return nil
 }
 
@@ -192,6 +207,23 @@ func (_c *CPCreate) createSpec() (*CP, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   cp.OwnerTable,
+			Columns: []string{cp.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_cps = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

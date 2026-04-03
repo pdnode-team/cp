@@ -4,6 +4,7 @@ package ent
 
 import (
 	"cp-website/ent/cp"
+	"cp-website/ent/user"
 	"fmt"
 	"strings"
 
@@ -25,6 +26,7 @@ type CP struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CPQuery when eager-loading is set.
 	Edges        CPEdges `json:"edges"`
+	user_cps     *int64
 	selectValues sql.SelectValues
 }
 
@@ -32,9 +34,11 @@ type CP struct {
 type CPEdges struct {
 	// Tags holds the value of the tags edge.
 	Tags []*Tag `json:"tags,omitempty"`
+	// Owner holds the value of the owner edge.
+	Owner *User `json:"owner,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // TagsOrErr returns the Tags value or an error if the edge
@@ -46,6 +50,17 @@ func (e CPEdges) TagsOrErr() ([]*Tag, error) {
 	return nil, &NotLoadedError{edge: "tags"}
 }
 
+// OwnerOrErr returns the Owner value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CPEdges) OwnerOrErr() (*User, error) {
+	if e.Owner != nil {
+		return e.Owner, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "owner"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*CP) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -55,6 +70,8 @@ func (*CP) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case cp.FieldName, cp.FieldCategory, cp.FieldLink:
 			values[i] = new(sql.NullString)
+		case cp.ForeignKeys[0]: // user_cps
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -94,6 +111,13 @@ func (_m *CP) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Link = value.String
 			}
+		case cp.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field user_cps", value)
+			} else if value.Valid {
+				_m.user_cps = new(int64)
+				*_m.user_cps = int64(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -110,6 +134,11 @@ func (_m *CP) Value(name string) (ent.Value, error) {
 // QueryTags queries the "tags" edge of the CP entity.
 func (_m *CP) QueryTags() *TagQuery {
 	return NewCPClient(_m.config).QueryTags(_m)
+}
+
+// QueryOwner queries the "owner" edge of the CP entity.
+func (_m *CP) QueryOwner() *UserQuery {
+	return NewCPClient(_m.config).QueryOwner(_m)
 }
 
 // Update returns a builder for updating this CP.

@@ -3,22 +3,37 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
+	"cp-website/auth"
 	"cp-website/ent"
 	"cp-website/handler" // 引入刚才写的 handler 包
+	"cp-website/middleware"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	emiddleware "github.com/labstack/echo/v4/middleware"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
+
+	// 启动时只读取一次 Secret
+	fileBytes, err := os.ReadFile("secret.json")
+	if err != nil {
+		log.Fatalf("无法读取 secret.json: %v", err)
+	}
+	var zitadelConfig auth.ZitadelConfig
+	if err := json.Unmarshal(fileBytes, &zitadelConfig); err != nil {
+		log.Fatalf("解析 secret.json 失败: %v", err)
+	}
+
 	client, err := ent.Open("sqlite3", "file:database.db?cache=shared&_fk=1")
 	if err != nil {
 		log.Fatalf("failed opening connection to sqlite: %v", err)
@@ -31,7 +46,7 @@ func main() {
 	fmt.Println("数据库表创建成功！")
 
 	e := echo.New()
-	e.Use(middleware.Recover())
+	e.Use(emiddleware.Recover())
 
 	// 使用 handler 包里的验证器
 	e.Validator = &handler.CustomValidator{Validator: validator.New()}
@@ -66,11 +81,16 @@ func main() {
 		return c.JSON(http.StatusOK, map[string]string{"message": "Hello World"})
 	})
 
-	e.GET("/cp", handler.GetAllCP(client))
-	e.POST("/cp", handler.CreateCP(client))
-	e.GET("/cp/:id", handler.GetCP(client))
-	e.PUT("/cp/:id", handler.UpdateCP(client))
-	e.DELETE("/cp/:id", handler.DeleteCP(client))
+	api := e.Group("/cp")
+	// 给这个组挂载你的鉴权中间件
+	api.Use(middleware.AuthMiddleware(client, zitadelConfig))
+
+	// 下面所有的路由都会自动先经过 AuthMiddleware 校验！
+	api.GET("", handler.GetAllCP(client))
+	api.POST("", handler.CreateCP(client))
+	api.GET("/:id", handler.GetCP(client))
+	api.PUT("/:id", handler.UpdateCP(client))
+	api.DELETE("/:id", handler.DeleteCP(client))
 
 	e.Logger.Fatal(e.Start(":8000"))
 }

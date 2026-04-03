@@ -6,6 +6,7 @@ import (
 	"context"
 	"cp-website/ent/cp"
 	"cp-website/ent/tag"
+	"cp-website/ent/user"
 	"errors"
 	"fmt"
 	"reflect"
@@ -74,8 +75,9 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			cp.Table:  cp.ValidColumn,
-			tag.Table: tag.ValidColumn,
+			cp.Table:   cp.ValidColumn,
+			tag.Table:  tag.ValidColumn,
+			user.Table: user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)
