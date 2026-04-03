@@ -76,3 +76,21 @@ async def delete_cp(cp_id: int) -> Dict[str, Any]:
         session.delete(cp)
         session.commit()
     return {"status": "ok", "data": cp}
+
+@app.put("/cp/{cp_id}")
+async def update_cp(cp_id: int, cp: CPBase) -> Dict[str, Any]:
+    cp = CP.model_validate(cp)
+    with Session(engine) as session:
+        statement = select(CP).where(CP.id == cp_id)
+        existing_cp = session.exec(statement).first()
+        if not existing_cp:
+            raise AppError("CP not found", 404)
+        
+        existing_cp.name = cp.name
+        existing_cp.category = cp.category
+        existing_cp.link = cp.link
+
+        session.add(existing_cp)
+        session.commit()
+        session.refresh(existing_cp)
+    return {"status": "ok", "data": existing_cp}

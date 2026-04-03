@@ -13,7 +13,7 @@ class CPTagLink(SQLModel, table=True):
 
 class CPBase(SQLModel):
     name: str = Field(index=True, min_length=1, unique=True)  # 强制校验：至少1个字符
-    category: str = Field(min_length=2, max_length=10) # 强制校验：2-10个字符
+    category: str = Field(min_length=2, max_length=20) # 强制校验：2-10个字符
     link: Optional[str] = Field(default=None, nullable=True)
 
 # --- 2. 数据库表（继承基础字段，加上 table=True） ---
