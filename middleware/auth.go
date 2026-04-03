@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"cp-website/auth" // 确保这个路径对应你实际的 Zitadel 包
 	"cp-website/ent"
@@ -49,6 +50,7 @@ func AuthMiddleware(client *ent.Client, config auth.ZitadelConfig) echo.Middlewa
 				Active   bool   `json:"active"`
 				Sub      string `json:"sub"`
 				Username string `json:"username"`
+				Scope    string `json:"scope"`
 			}
 
 			if err := json.NewDecoder(resp.Body).Decode(&introspectionResult); err != nil {
@@ -59,7 +61,23 @@ func AuthMiddleware(client *ent.Client, config auth.ZitadelConfig) echo.Middlewa
 				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Token is invalid"})
 			}
 
-			// 🌟 核心逻辑：查询或创建用户实体
+			// 提取角色并判断是否是管理员
+			var roles []string
+			isAdmin := false
+
+			if introspectionResult.Scope != "" {
+				// 检查是否包含 admin 角色
+				if strings.Contains(introspectionResult.Scope, "role:admin") {
+					isAdmin = true
+					roles = append(roles, "admin")
+				}
+				// 检查是否包含 moderator 角色
+				if strings.Contains(introspectionResult.Scope, "role:moderator") {
+					roles = append(roles, "moderator")
+				}
+			}
+
+			// 查询或创建用户实体
 			ctx := c.Request().Context()
 			dbUser, err := client.User.Query().Where(user.SubEQ(introspectionResult.Sub)).Only(ctx)
 			if ent.IsNotFound(err) {
@@ -69,8 +87,10 @@ func AuthMiddleware(client *ent.Client, config auth.ZitadelConfig) echo.Middlewa
 				}
 			}
 
-			// 🌟 魔法：把查出来的数据库 User 实体直接塞进 Context
+			// 把查出来的数据库 User 实体直接塞进 Context
 			c.Set("user", dbUser)
+			c.Set("roles", roles)     // 注入角色列表，供复杂权限判断使用
+			c.Set("isAdmin", isAdmin) // 注入布尔值，供快速判断使用
 
 			return next(c)
 		}

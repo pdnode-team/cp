@@ -16,9 +16,20 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// CheckOwnership 检查是否有权操作该资源
+func CheckOwnership(c echo.Context, ownerID int64) error {
+	currentUser := c.Get("user").(*ent.User)
+	isAdmin := c.Get("isAdmin").(bool)
+
+	if currentUser.ID != ownerID && !isAdmin {
+		return echo.NewHTTPError(http.StatusForbidden, "No right to operate other people's resources")
+	}
+	return nil
+}
+
 // 此函数负责查重、创建新标签，并返回所有相关标签的 ID 列表
 func syncTags(ctx context.Context, client *ent.Client, names []string, dbUser *ent.User) ([]int64, error) {
-	// 1. 去重并剔除空字符串
+	// 去重并剔除空字符串
 	uniqueNames := make(map[string]bool)
 	for _, n := range names {
 		trimmed := strings.TrimSpace(n)
@@ -35,28 +46,31 @@ func syncTags(ctx context.Context, client *ent.Client, names []string, dbUser *e
 		nameList = append(nameList, n)
 	}
 
-	// 2. 查找数据库中已有的标签
-	existingTags, err := client.Tag.Query().Where(tag.NameIn(nameList...)).All(ctx)
+	// 全局查找数据库中已有的标签 (不再限制 Owner)
+	existingTags, err := client.Tag.Query().
+		Where(tag.NameIn(nameList...)).
+		All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	existingMap := make(map[string]int64) // 改为 int64
-	var tagIDs []int64                    // 改为 int64
+	existingMap := make(map[string]int64)
+	var tagIDs []int64
 	for _, t := range existingTags {
 		existingMap[t.Name] = t.ID
-		tagIDs = append(tagIDs, t.ID) // 收集已有标签 ID
+		tagIDs = append(tagIDs, t.ID)
 	}
 
-	// 3. 找出需要新创建的标签
+	// 找出需要新创建的标签
 	var newCreates []*ent.TagCreate
 	for _, n := range nameList {
 		if _, exists := existingMap[n]; !exists {
+			// 虽然是公共标签，但我们可以记录一下是谁第一个创建的
 			newCreates = append(newCreates, client.Tag.Create().SetName(n).SetOwner(dbUser))
 		}
 	}
 
-	// 4. 批量创建新标签并收集它们的 ID
+	// 4. 批量创建
 	if len(newCreates) > 0 {
 		createdTags, err := client.Tag.CreateBulk(newCreates...).Save(ctx)
 		if err != nil {
@@ -200,9 +214,14 @@ func DeleteCP(client *ent.Client) echo.HandlerFunc {
 		ctx := c.Request().Context()
 		id := ParseID(c.Param("id"))
 
-		dbCP, err := client.CP.Query().Where(cp.IDEQ(id)).WithTags().Only(ctx)
+		dbCP, err := client.CP.Query().Where(cp.ID(id)).WithOwner().Only(ctx)
+
 		if err != nil {
-			return err
+			return err // 让全局处理器返回 404 或 500，防止宕机
+		}
+
+		if err := CheckOwnership(c, dbCP.Edges.Owner.ID); err != nil {
+			return err // 直接返回 403
 		}
 
 		if err := client.CP.DeleteOneID(dbCP.ID).Exec(ctx); err != nil {
@@ -225,6 +244,16 @@ func UpdateCP(client *ent.Client) echo.HandlerFunc {
 		}
 		if err := c.Validate(req); err != nil {
 			return echo.NewHTTPError(400, err.Error())
+		}
+
+		dbCP, err := client.CP.Query().Where(cp.ID(id)).WithOwner().Only(ctx)
+
+		if err != nil {
+			return err // 让全局处理器返回 404 或 500，防止宕机
+		}
+
+		if err := CheckOwnership(c, dbCP.Edges.Owner.ID); err != nil {
+			return err // 直接返回 403
 		}
 
 		tagIDs, err := syncTags(ctx, client, req.TagNames, dbUser)
