@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"cp-website/ent/comment"
 	"cp-website/ent/cp"
 	"cp-website/ent/tag"
 	"cp-website/ent/user"
@@ -69,6 +70,36 @@ func (_c *UserCreate) AddTags(v ...*Tag) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddTagIDs(ids...)
+}
+
+// AddLikedCpIDs adds the "liked_cps" edge to the CP entity by IDs.
+func (_c *UserCreate) AddLikedCpIDs(ids ...int64) *UserCreate {
+	_c.mutation.AddLikedCpIDs(ids...)
+	return _c
+}
+
+// AddLikedCps adds the "liked_cps" edges to the CP entity.
+func (_c *UserCreate) AddLikedCps(v ...*CP) *UserCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddLikedCpIDs(ids...)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (_c *UserCreate) AddCommentIDs(ids ...int64) *UserCreate {
+	_c.mutation.AddCommentIDs(ids...)
+	return _c
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (_c *UserCreate) AddComments(v ...*Comment) *UserCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCommentIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -183,6 +214,38 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.LikedCpsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.LikedCpsTable,
+			Columns: user.LikedCpsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cp.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

@@ -3,10 +3,12 @@
 package ent
 
 import (
+	"cp-website/ent/comment"
 	"cp-website/ent/cp"
 	"cp-website/ent/schema"
 	"cp-website/ent/tag"
 	"cp-website/ent/user"
+	"time"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -41,6 +43,20 @@ func init() {
 	cpDescID := cpFields[0].Descriptor()
 	// cp.DefaultID holds the default value on creation for the id field.
 	cp.DefaultID = cpDescID.Default.(func() int64)
+	commentFields := schema.Comment{}.Fields()
+	_ = commentFields
+	// commentDescContent is the schema descriptor for content field.
+	commentDescContent := commentFields[1].Descriptor()
+	// comment.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	comment.ContentValidator = commentDescContent.Validators[0].(func(string) error)
+	// commentDescCreatedAt is the schema descriptor for created_at field.
+	commentDescCreatedAt := commentFields[2].Descriptor()
+	// comment.DefaultCreatedAt holds the default value on creation for the created_at field.
+	comment.DefaultCreatedAt = commentDescCreatedAt.Default.(func() time.Time)
+	// commentDescID is the schema descriptor for id field.
+	commentDescID := commentFields[0].Descriptor()
+	// comment.DefaultID holds the default value on creation for the id field.
+	comment.DefaultID = commentDescID.Default.(func() int64)
 	tagFields := schema.Tag{}.Fields()
 	_ = tagFields
 	// tagDescName is the schema descriptor for name field.

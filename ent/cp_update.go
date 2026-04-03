@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"cp-website/ent/comment"
 	"cp-website/ent/cp"
 	"cp-website/ent/predicate"
 	"cp-website/ent/tag"
@@ -103,6 +104,36 @@ func (_u *CPUpdate) SetOwner(v *User) *CPUpdate {
 	return _u.SetOwnerID(v.ID)
 }
 
+// AddLikedByUserIDs adds the "liked_by_users" edge to the User entity by IDs.
+func (_u *CPUpdate) AddLikedByUserIDs(ids ...int64) *CPUpdate {
+	_u.mutation.AddLikedByUserIDs(ids...)
+	return _u
+}
+
+// AddLikedByUsers adds the "liked_by_users" edges to the User entity.
+func (_u *CPUpdate) AddLikedByUsers(v ...*User) *CPUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddLikedByUserIDs(ids...)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (_u *CPUpdate) AddCommentIDs(ids ...int64) *CPUpdate {
+	_u.mutation.AddCommentIDs(ids...)
+	return _u
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (_u *CPUpdate) AddComments(v ...*Comment) *CPUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCommentIDs(ids...)
+}
+
 // Mutation returns the CPMutation object of the builder.
 func (_u *CPUpdate) Mutation() *CPMutation {
 	return _u.mutation
@@ -133,6 +164,48 @@ func (_u *CPUpdate) RemoveTags(v ...*Tag) *CPUpdate {
 func (_u *CPUpdate) ClearOwner() *CPUpdate {
 	_u.mutation.ClearOwner()
 	return _u
+}
+
+// ClearLikedByUsers clears all "liked_by_users" edges to the User entity.
+func (_u *CPUpdate) ClearLikedByUsers() *CPUpdate {
+	_u.mutation.ClearLikedByUsers()
+	return _u
+}
+
+// RemoveLikedByUserIDs removes the "liked_by_users" edge to User entities by IDs.
+func (_u *CPUpdate) RemoveLikedByUserIDs(ids ...int64) *CPUpdate {
+	_u.mutation.RemoveLikedByUserIDs(ids...)
+	return _u
+}
+
+// RemoveLikedByUsers removes "liked_by_users" edges to User entities.
+func (_u *CPUpdate) RemoveLikedByUsers(v ...*User) *CPUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveLikedByUserIDs(ids...)
+}
+
+// ClearComments clears all "comments" edges to the Comment entity.
+func (_u *CPUpdate) ClearComments() *CPUpdate {
+	_u.mutation.ClearComments()
+	return _u
+}
+
+// RemoveCommentIDs removes the "comments" edge to Comment entities by IDs.
+func (_u *CPUpdate) RemoveCommentIDs(ids ...int64) *CPUpdate {
+	_u.mutation.RemoveCommentIDs(ids...)
+	return _u
+}
+
+// RemoveComments removes "comments" edges to Comment entities.
+func (_u *CPUpdate) RemoveComments(v ...*Comment) *CPUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCommentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -278,6 +351,96 @@ func (_u *CPUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.LikedByUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   cp.LikedByUsersTable,
+			Columns: cp.LikedByUsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedLikedByUsersIDs(); len(nodes) > 0 && !_u.mutation.LikedByUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   cp.LikedByUsersTable,
+			Columns: cp.LikedByUsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LikedByUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   cp.LikedByUsersTable,
+			Columns: cp.LikedByUsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cp.CommentsTable,
+			Columns: []string{cp.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCommentsIDs(); len(nodes) > 0 && !_u.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cp.CommentsTable,
+			Columns: []string{cp.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cp.CommentsTable,
+			Columns: []string{cp.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{cp.Label}
@@ -372,6 +535,36 @@ func (_u *CPUpdateOne) SetOwner(v *User) *CPUpdateOne {
 	return _u.SetOwnerID(v.ID)
 }
 
+// AddLikedByUserIDs adds the "liked_by_users" edge to the User entity by IDs.
+func (_u *CPUpdateOne) AddLikedByUserIDs(ids ...int64) *CPUpdateOne {
+	_u.mutation.AddLikedByUserIDs(ids...)
+	return _u
+}
+
+// AddLikedByUsers adds the "liked_by_users" edges to the User entity.
+func (_u *CPUpdateOne) AddLikedByUsers(v ...*User) *CPUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddLikedByUserIDs(ids...)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (_u *CPUpdateOne) AddCommentIDs(ids ...int64) *CPUpdateOne {
+	_u.mutation.AddCommentIDs(ids...)
+	return _u
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (_u *CPUpdateOne) AddComments(v ...*Comment) *CPUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCommentIDs(ids...)
+}
+
 // Mutation returns the CPMutation object of the builder.
 func (_u *CPUpdateOne) Mutation() *CPMutation {
 	return _u.mutation
@@ -402,6 +595,48 @@ func (_u *CPUpdateOne) RemoveTags(v ...*Tag) *CPUpdateOne {
 func (_u *CPUpdateOne) ClearOwner() *CPUpdateOne {
 	_u.mutation.ClearOwner()
 	return _u
+}
+
+// ClearLikedByUsers clears all "liked_by_users" edges to the User entity.
+func (_u *CPUpdateOne) ClearLikedByUsers() *CPUpdateOne {
+	_u.mutation.ClearLikedByUsers()
+	return _u
+}
+
+// RemoveLikedByUserIDs removes the "liked_by_users" edge to User entities by IDs.
+func (_u *CPUpdateOne) RemoveLikedByUserIDs(ids ...int64) *CPUpdateOne {
+	_u.mutation.RemoveLikedByUserIDs(ids...)
+	return _u
+}
+
+// RemoveLikedByUsers removes "liked_by_users" edges to User entities.
+func (_u *CPUpdateOne) RemoveLikedByUsers(v ...*User) *CPUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveLikedByUserIDs(ids...)
+}
+
+// ClearComments clears all "comments" edges to the Comment entity.
+func (_u *CPUpdateOne) ClearComments() *CPUpdateOne {
+	_u.mutation.ClearComments()
+	return _u
+}
+
+// RemoveCommentIDs removes the "comments" edge to Comment entities by IDs.
+func (_u *CPUpdateOne) RemoveCommentIDs(ids ...int64) *CPUpdateOne {
+	_u.mutation.RemoveCommentIDs(ids...)
+	return _u
+}
+
+// RemoveComments removes "comments" edges to Comment entities.
+func (_u *CPUpdateOne) RemoveComments(v ...*Comment) *CPUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCommentIDs(ids...)
 }
 
 // Where appends a list predicates to the CPUpdate builder.
@@ -570,6 +805,96 @@ func (_u *CPUpdateOne) sqlSave(ctx context.Context) (_node *CP, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.LikedByUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   cp.LikedByUsersTable,
+			Columns: cp.LikedByUsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedLikedByUsersIDs(); len(nodes) > 0 && !_u.mutation.LikedByUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   cp.LikedByUsersTable,
+			Columns: cp.LikedByUsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LikedByUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   cp.LikedByUsersTable,
+			Columns: cp.LikedByUsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cp.CommentsTable,
+			Columns: []string{cp.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCommentsIDs(); len(nodes) > 0 && !_u.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cp.CommentsTable,
+			Columns: []string{cp.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   cp.CommentsTable,
+			Columns: []string{cp.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

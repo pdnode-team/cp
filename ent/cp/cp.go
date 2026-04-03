@@ -22,6 +22,10 @@ const (
 	EdgeTags = "tags"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
+	// EdgeLikedByUsers holds the string denoting the liked_by_users edge name in mutations.
+	EdgeLikedByUsers = "liked_by_users"
+	// EdgeComments holds the string denoting the comments edge name in mutations.
+	EdgeComments = "comments"
 	// Table holds the table name of the cp in the database.
 	Table = "cps"
 	// TagsTable is the table that holds the tags relation/edge. The primary key declared below.
@@ -36,6 +40,18 @@ const (
 	OwnerInverseTable = "users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
 	OwnerColumn = "user_cps"
+	// LikedByUsersTable is the table that holds the liked_by_users relation/edge. The primary key declared below.
+	LikedByUsersTable = "user_liked_cps"
+	// LikedByUsersInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	LikedByUsersInverseTable = "users"
+	// CommentsTable is the table that holds the comments relation/edge.
+	CommentsTable = "comments"
+	// CommentsInverseTable is the table name for the Comment entity.
+	// It exists in this package in order to avoid circular dependency with the "comment" package.
+	CommentsInverseTable = "comments"
+	// CommentsColumn is the table column denoting the comments relation/edge.
+	CommentsColumn = "cp_comments"
 )
 
 // Columns holds all SQL columns for cp fields.
@@ -56,6 +72,9 @@ var (
 	// TagsPrimaryKey and TagsColumn2 are the table columns denoting the
 	// primary key for the tags relation (M2M).
 	TagsPrimaryKey = []string{"cp_id", "tag_id"}
+	// LikedByUsersPrimaryKey and LikedByUsersColumn2 are the table columns denoting the
+	// primary key for the liked_by_users relation (M2M).
+	LikedByUsersPrimaryKey = []string{"user_id", "cp_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -125,6 +144,34 @@ func ByOwnerField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newOwnerStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByLikedByUsersCount orders the results by liked_by_users count.
+func ByLikedByUsersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLikedByUsersStep(), opts...)
+	}
+}
+
+// ByLikedByUsers orders the results by liked_by_users terms.
+func ByLikedByUsers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLikedByUsersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCommentsCount orders the results by comments count.
+func ByCommentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCommentsStep(), opts...)
+	}
+}
+
+// ByComments orders the results by comments terms.
+func ByComments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCommentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTagsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -137,5 +184,19 @@ func newOwnerStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OwnerInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
+	)
+}
+func newLikedByUsersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LikedByUsersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, LikedByUsersTable, LikedByUsersPrimaryKey...),
+	)
+}
+func newCommentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CommentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CommentsTable, CommentsColumn),
 	)
 }

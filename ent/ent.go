@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"cp-website/ent/comment"
 	"cp-website/ent/cp"
 	"cp-website/ent/tag"
 	"cp-website/ent/user"
@@ -75,9 +76,10 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			cp.Table:   cp.ValidColumn,
-			tag.Table:  tag.ValidColumn,
-			user.Table: user.ValidColumn,
+			cp.Table:      cp.ValidColumn,
+			comment.Table: comment.ValidColumn,
+			tag.Table:     tag.ValidColumn,
+			user.Table:    user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

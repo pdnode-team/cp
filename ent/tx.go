@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// CP is the client for interacting with the CP builders.
 	CP *CPClient
+	// Comment is the client for interacting with the Comment builders.
+	Comment *CommentClient
 	// Tag is the client for interacting with the Tag builders.
 	Tag *TagClient
 	// User is the client for interacting with the User builders.
@@ -150,6 +152,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.CP = NewCPClient(tx.config)
+	tx.Comment = NewCommentClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

@@ -18,6 +18,10 @@ const (
 	EdgeCps = "cps"
 	// EdgeTags holds the string denoting the tags edge name in mutations.
 	EdgeTags = "tags"
+	// EdgeLikedCps holds the string denoting the liked_cps edge name in mutations.
+	EdgeLikedCps = "liked_cps"
+	// EdgeComments holds the string denoting the comments edge name in mutations.
+	EdgeComments = "comments"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// CpsTable is the table that holds the cps relation/edge.
@@ -34,6 +38,18 @@ const (
 	TagsInverseTable = "tags"
 	// TagsColumn is the table column denoting the tags relation/edge.
 	TagsColumn = "user_tags"
+	// LikedCpsTable is the table that holds the liked_cps relation/edge. The primary key declared below.
+	LikedCpsTable = "user_liked_cps"
+	// LikedCpsInverseTable is the table name for the CP entity.
+	// It exists in this package in order to avoid circular dependency with the "cp" package.
+	LikedCpsInverseTable = "cps"
+	// CommentsTable is the table that holds the comments relation/edge.
+	CommentsTable = "comments"
+	// CommentsInverseTable is the table name for the Comment entity.
+	// It exists in this package in order to avoid circular dependency with the "comment" package.
+	CommentsInverseTable = "comments"
+	// CommentsColumn is the table column denoting the comments relation/edge.
+	CommentsColumn = "user_comments"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -41,6 +57,12 @@ var Columns = []string{
 	FieldID,
 	FieldSub,
 }
+
+var (
+	// LikedCpsPrimaryKey and LikedCpsColumn2 are the table columns denoting the
+	// primary key for the liked_cps relation (M2M).
+	LikedCpsPrimaryKey = []string{"user_id", "cp_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -99,6 +121,34 @@ func ByTags(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTagsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByLikedCpsCount orders the results by liked_cps count.
+func ByLikedCpsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLikedCpsStep(), opts...)
+	}
+}
+
+// ByLikedCps orders the results by liked_cps terms.
+func ByLikedCps(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLikedCpsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCommentsCount orders the results by comments count.
+func ByCommentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCommentsStep(), opts...)
+	}
+}
+
+// ByComments orders the results by comments terms.
+func ByComments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCommentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCpsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -111,5 +161,19 @@ func newTagsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TagsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, TagsTable, TagsColumn),
+	)
+}
+func newLikedCpsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LikedCpsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, LikedCpsTable, LikedCpsPrimaryKey...),
+	)
+}
+func newCommentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CommentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CommentsTable, CommentsColumn),
 	)
 }

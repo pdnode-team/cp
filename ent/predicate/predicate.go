@@ -9,6 +9,9 @@ import (
 // CP is the predicate function for cp builders.
 type CP func(*sql.Selector)
 
+// Comment is the predicate function for comment builders.
+type Comment func(*sql.Selector)
+
 // Tag is the predicate function for tag builders.
 type Tag func(*sql.Selector)
 

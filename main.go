@@ -92,5 +92,9 @@ func main() {
 	api.PUT("/:id", handler.UpdateCP(client))
 	api.DELETE("/:id", handler.DeleteCP(client))
 
+	api.POST("/:id/like", handler.ToggleLike(client))
+	api.POST("/:id/comment", handler.CreateComment(client))
+	api.GET("/:id/comments", handler.GetComments(client))
+
 	e.Logger.Fatal(e.Start(":8000"))
 }

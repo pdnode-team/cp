@@ -36,9 +36,13 @@ type CPEdges struct {
 	Tags []*Tag `json:"tags,omitempty"`
 	// Owner holds the value of the owner edge.
 	Owner *User `json:"owner,omitempty"`
+	// LikedByUsers holds the value of the liked_by_users edge.
+	LikedByUsers []*User `json:"liked_by_users,omitempty"`
+	// Comments holds the value of the comments edge.
+	Comments []*Comment `json:"comments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // TagsOrErr returns the Tags value or an error if the edge
@@ -59,6 +63,24 @@ func (e CPEdges) OwnerOrErr() (*User, error) {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "owner"}
+}
+
+// LikedByUsersOrErr returns the LikedByUsers value or an error if the edge
+// was not loaded in eager-loading.
+func (e CPEdges) LikedByUsersOrErr() ([]*User, error) {
+	if e.loadedTypes[2] {
+		return e.LikedByUsers, nil
+	}
+	return nil, &NotLoadedError{edge: "liked_by_users"}
+}
+
+// CommentsOrErr returns the Comments value or an error if the edge
+// was not loaded in eager-loading.
+func (e CPEdges) CommentsOrErr() ([]*Comment, error) {
+	if e.loadedTypes[3] {
+		return e.Comments, nil
+	}
+	return nil, &NotLoadedError{edge: "comments"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -139,6 +161,16 @@ func (_m *CP) QueryTags() *TagQuery {
 // QueryOwner queries the "owner" edge of the CP entity.
 func (_m *CP) QueryOwner() *UserQuery {
 	return NewCPClient(_m.config).QueryOwner(_m)
+}
+
+// QueryLikedByUsers queries the "liked_by_users" edge of the CP entity.
+func (_m *CP) QueryLikedByUsers() *UserQuery {
+	return NewCPClient(_m.config).QueryLikedByUsers(_m)
+}
+
+// QueryComments queries the "comments" edge of the CP entity.
+func (_m *CP) QueryComments() *CommentQuery {
+	return NewCPClient(_m.config).QueryComments(_m)
 }
 
 // Update returns a builder for updating this CP.

@@ -29,5 +29,7 @@ func (CP) Edges() []ent.Edge {
 		// 定义到 Tag 的多对多关系，Ent 会自动生成中间表
 		edge.To("tags", Tag.Type),
 		edge.From("owner", User.Type).Ref("cps").Unique().Required(),
+		edge.From("liked_by_users", User.Type).Ref("liked_cps"),
+		edge.To("comments", Comment.Type),
 	}
 }

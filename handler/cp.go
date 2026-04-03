@@ -10,6 +10,7 @@ import (
 	"cp-website/ent"
 	"cp-website/ent/cp"
 	"cp-website/ent/tag"
+	"cp-website/ent/user"
 	"cp-website/model"
 
 	"github.com/labstack/echo/v4"
@@ -72,28 +73,77 @@ func syncTags(ctx context.Context, client *ent.Client, names []string, dbUser *e
 // GetAllCP 处理 GET /cp
 func GetAllCP(client *ent.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		cps, err := client.CP.Query().WithTags().All(c.Request().Context())
+		ctx := c.Request().Context()
+
+		cps, err := client.CP.Query().WithTags().All(ctx)
 		if err != nil {
 			return err
 		}
-		return Success(c, cps, 200)
+
+		// 定义一个专为列表展示优化的响应结构
+		type CPListItem struct {
+			*ent.CP
+			LikeCount int `json:"like_count"`
+		}
+
+		var result []CPListItem
+		for _, item := range cps {
+			// 在列表中逐个统计点赞数 (如果数据量极大，Ent 有更高级的 sql.Annotation 聚合语法，但目前这样写足够清晰)
+			count, _ := item.QueryLikedByUsers().Count(ctx)
+			result = append(result, CPListItem{
+				CP:        item,
+				LikeCount: count,
+			})
+		}
+
+		return Success(c, result, 200)
 	}
 }
 
 // GetCP 处理 GET /cp/:id
 func GetCP(client *ent.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		ctx := c.Request().Context()
 		id := c.Param("id")
-		val, err := strconv.ParseInt(id, 10, 64) // 直接用 ParseInt
+		val, err := strconv.ParseInt(id, 10, 64)
 		if err != nil {
 			return err
 		}
 
-		cpResult, err := client.CP.Query().Where(cp.ID(val)).WithTags().First(c.Request().Context())
+		// 1. 获取 CP 基本信息和它的标签
+		dbCP, err := client.CP.Query().
+			Where(cp.ID(val)).
+			WithTags().
+			Only(ctx)
 		if err != nil {
 			return err
 		}
-		return Success(c, cpResult, 200)
+
+		// 2. 🌟 高性能获取总点赞数
+		// QueryLikedByUsers() 会生成一条专门去中间表 COUNT 的 SQL 语句，不拉取具体用户数据
+		likeCount, err := dbCP.QueryLikedByUsers().Count(ctx)
+		if err != nil {
+			return err
+		}
+
+		// 3. 🌟 判断当前看这个接口的用户，有没有点赞过这个 CP
+		var isLiked bool
+
+		// 尝试从 Context 中获取当前登录的用户（因为这个接口可能允许未登录查看，所以要做安全判断）
+		if userVal := c.Get("user"); userVal != nil {
+			dbUser := userVal.(*ent.User)
+			// 查询当前 CP 的点赞列表中，是否存在当前用户的 ID
+			isLiked, _ = dbCP.QueryLikedByUsers().
+				Where(user.ID(dbUser.ID)).
+				Exist(ctx)
+		}
+
+		// 4. 将 CP 数据、点赞数、当前用户的点赞状态 重新组装成 JSON 返回
+		return Success(c, map[string]interface{}{
+			"cp":         dbCP,      // 包含原本的 ID、名称、标签等
+			"like_count": likeCount, // 总点赞数
+			"is_liked":   isLiked,   // 当前用户是否已赞 (true/false)
+		}, 200)
 	}
 }
 

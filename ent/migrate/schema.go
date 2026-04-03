@@ -30,6 +30,41 @@ var (
 			},
 		},
 	}
+	// CommentsColumns holds the columns for the "comments" table.
+	CommentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "content", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "cp_comments", Type: field.TypeInt64},
+		{Name: "comment_children", Type: field.TypeInt64, Nullable: true},
+		{Name: "user_comments", Type: field.TypeInt64},
+	}
+	// CommentsTable holds the schema information for the "comments" table.
+	CommentsTable = &schema.Table{
+		Name:       "comments",
+		Columns:    CommentsColumns,
+		PrimaryKey: []*schema.Column{CommentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "comments_cps_comments",
+				Columns:    []*schema.Column{CommentsColumns[3]},
+				RefColumns: []*schema.Column{CpsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "comments_comments_children",
+				Columns:    []*schema.Column{CommentsColumns[4]},
+				RefColumns: []*schema.Column{CommentsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "comments_users_comments",
+				Columns:    []*schema.Column{CommentsColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// TagsColumns holds the columns for the "tags" table.
 	TagsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -86,18 +121,50 @@ var (
 			},
 		},
 	}
+	// UserLikedCpsColumns holds the columns for the "user_liked_cps" table.
+	UserLikedCpsColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeInt64},
+		{Name: "cp_id", Type: field.TypeInt64},
+	}
+	// UserLikedCpsTable holds the schema information for the "user_liked_cps" table.
+	UserLikedCpsTable = &schema.Table{
+		Name:       "user_liked_cps",
+		Columns:    UserLikedCpsColumns,
+		PrimaryKey: []*schema.Column{UserLikedCpsColumns[0], UserLikedCpsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_liked_cps_user_id",
+				Columns:    []*schema.Column{UserLikedCpsColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_liked_cps_cp_id",
+				Columns:    []*schema.Column{UserLikedCpsColumns[1]},
+				RefColumns: []*schema.Column{CpsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CpsTable,
+		CommentsTable,
 		TagsTable,
 		UsersTable,
 		CpTagsTable,
+		UserLikedCpsTable,
 	}
 )
 
 func init() {
 	CpsTable.ForeignKeys[0].RefTable = UsersTable
+	CommentsTable.ForeignKeys[0].RefTable = CpsTable
+	CommentsTable.ForeignKeys[1].RefTable = CommentsTable
+	CommentsTable.ForeignKeys[2].RefTable = UsersTable
 	TagsTable.ForeignKeys[0].RefTable = UsersTable
 	CpTagsTable.ForeignKeys[0].RefTable = CpsTable
 	CpTagsTable.ForeignKeys[1].RefTable = TagsTable
+	UserLikedCpsTable.ForeignKeys[0].RefTable = UsersTable
+	UserLikedCpsTable.ForeignKeys[1].RefTable = CpsTable
 }

@@ -25,5 +25,7 @@ func (User) Edges() []ent.Edge {
 		// 一个用户可以拥有多个 CP 和 Tag
 		edge.To("cps", CP.Type),
 		edge.To("tags", Tag.Type),
+		edge.To("liked_cps", CP.Type),
+		edge.To("comments", Comment.Type),
 	}
 }

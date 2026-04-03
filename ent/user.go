@@ -30,9 +30,13 @@ type UserEdges struct {
 	Cps []*CP `json:"cps,omitempty"`
 	// Tags holds the value of the tags edge.
 	Tags []*Tag `json:"tags,omitempty"`
+	// LikedCps holds the value of the liked_cps edge.
+	LikedCps []*CP `json:"liked_cps,omitempty"`
+	// Comments holds the value of the comments edge.
+	Comments []*Comment `json:"comments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // CpsOrErr returns the Cps value or an error if the edge
@@ -51,6 +55,24 @@ func (e UserEdges) TagsOrErr() ([]*Tag, error) {
 		return e.Tags, nil
 	}
 	return nil, &NotLoadedError{edge: "tags"}
+}
+
+// LikedCpsOrErr returns the LikedCps value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) LikedCpsOrErr() ([]*CP, error) {
+	if e.loadedTypes[2] {
+		return e.LikedCps, nil
+	}
+	return nil, &NotLoadedError{edge: "liked_cps"}
+}
+
+// CommentsOrErr returns the Comments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CommentsOrErr() ([]*Comment, error) {
+	if e.loadedTypes[3] {
+		return e.Comments, nil
+	}
+	return nil, &NotLoadedError{edge: "comments"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -110,6 +132,16 @@ func (_m *User) QueryCps() *CPQuery {
 // QueryTags queries the "tags" edge of the User entity.
 func (_m *User) QueryTags() *TagQuery {
 	return NewUserClient(_m.config).QueryTags(_m)
+}
+
+// QueryLikedCps queries the "liked_cps" edge of the User entity.
+func (_m *User) QueryLikedCps() *CPQuery {
+	return NewUserClient(_m.config).QueryLikedCps(_m)
+}
+
+// QueryComments queries the "comments" edge of the User entity.
+func (_m *User) QueryComments() *CommentQuery {
+	return NewUserClient(_m.config).QueryComments(_m)
 }
 
 // Update returns a builder for updating this User.
