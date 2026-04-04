@@ -105,7 +105,10 @@ func GetAllCP(client *ent.Client) echo.HandlerFunc {
 		var result []CPListItem
 		for _, item := range cps {
 			// 在列表中逐个统计点赞数 (如果数据量极大，Ent 有更高级的 sql.Annotation 聚合语法，但目前这样写足够清晰)
-			count, _ := item.QueryLikedByUsers().Count(ctx)
+			count, err := item.QueryLikedByUsers().Count(ctx)
+			if err != nil {
+				return err
+			}
 			result = append(result, CPListItem{
 				CP:        item,
 				LikeCount: count,
@@ -144,13 +147,17 @@ func GetCP(client *ent.Client) echo.HandlerFunc {
 		// 3. 🌟 判断当前看这个接口的用户，有没有点赞过这个 CP
 		var isLiked bool
 
-		// 尝试从 Context 中获取当前登录的用户（因为这个接口可能允许未登录查看，所以要做安全判断）
+		// 当前路由在鉴权组内，user 始终存在；仍用 nil 检查以防中间件变更
 		if userVal := c.Get("user"); userVal != nil {
 			dbUser := userVal.(*ent.User)
 			// 查询当前 CP 的点赞列表中，是否存在当前用户的 ID
-			isLiked, _ = dbCP.QueryLikedByUsers().
+			var existErr error
+			isLiked, existErr = dbCP.QueryLikedByUsers().
 				Where(user.ID(dbUser.ID)).
 				Exist(ctx)
+			if existErr != nil {
+				return existErr
+			}
 		}
 
 		// 4. 将 CP 数据、点赞数、当前用户的点赞状态 重新组装成 JSON 返回
@@ -204,7 +211,10 @@ func CreateCP(client *ent.Client) echo.HandlerFunc {
 			return err
 		}
 
-		result, _ := client.CP.Query().Where(cp.ID(newCP.ID)).WithTags().Only(ctx)
+		result, err := client.CP.Query().Where(cp.ID(newCP.ID)).WithTags().Only(ctx)
+		if err != nil {
+			return err
+		}
 		slog.Info("CreateCP", "result", result)
 		return Success(c, result, 201)
 	}
@@ -287,7 +297,10 @@ func UpdateCP(client *ent.Client) echo.HandlerFunc {
 			return err
 		}
 		slog.Info("UpdateCP", "updatedCP", updatedCP)
-		result, _ := client.CP.Query().Where(cp.ID(updatedCP.ID)).WithTags().Only(ctx)
+		result, err := client.CP.Query().Where(cp.ID(updatedCP.ID)).WithTags().Only(ctx)
+		if err != nil {
+			return err
+		}
 		return Success(c, result, 200)
 	}
 }
