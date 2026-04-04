@@ -54,7 +54,7 @@ func main() {
 	// 全局错误处理器
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
 		code := http.StatusInternalServerError
-		msg := err.Error()
+		msg := "Internal Server Error"
 
 		if he, ok := err.(*echo.HTTPError); ok {
 			code = he.Code
@@ -78,7 +78,7 @@ func main() {
 
 	// 注册路由，直接调用 handler 包里的方法
 	e.GET("/", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{"message": "Hello World"})
+		return c.JSON(http.StatusOK, map[string]string{"message": "Hello World!"})
 	})
 
 	api := e.Group("/cp")

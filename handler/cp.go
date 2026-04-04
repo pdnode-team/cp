@@ -3,6 +3,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -80,6 +81,8 @@ func syncTags(ctx context.Context, client *ent.Client, names []string, dbUser *e
 			tagIDs = append(tagIDs, t.ID)
 		}
 	}
+
+	slog.Info("syncTags", "tagIDs", tagIDs)
 
 	return tagIDs, nil
 }
@@ -204,6 +207,7 @@ func CreateCP(client *ent.Client) echo.HandlerFunc {
 		}
 
 		result, _ := client.CP.Query().Where(cp.ID(newCP.ID)).WithTags().Only(ctx)
+		slog.Info("CreateCP", "result", result)
 		return Success(c, result, 201)
 	}
 }
@@ -227,6 +231,7 @@ func DeleteCP(client *ent.Client) echo.HandlerFunc {
 		if err := client.CP.DeleteOneID(dbCP.ID).Exec(ctx); err != nil {
 			return err
 		}
+		slog.Info("DeleteCP", "dbCP", dbCP)
 		return Success(c, dbCP, 200)
 	}
 }
@@ -277,7 +282,7 @@ func UpdateCP(client *ent.Client) echo.HandlerFunc {
 		if err != nil {
 			return err
 		}
-
+		slog.Info("UpdateCP", "updatedCP", updatedCP)
 		result, _ := client.CP.Query().Where(cp.ID(updatedCP.ID)).WithTags().Only(ctx)
 		return Success(c, result, 200)
 	}

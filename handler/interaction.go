@@ -6,6 +6,7 @@ import (
 	"cp-website/ent/cp"
 	"cp-website/ent/user"
 	"cp-website/model"
+	"log/slog"
 
 	"github.com/labstack/echo/v4"
 )
@@ -36,6 +37,8 @@ func ToggleLike(client *ent.Client) echo.HandlerFunc {
 		if err != nil {
 			return err
 		}
+
+		slog.Info("ToggleLike", "liked", !liked)
 
 		return Success(c, map[string]interface{}{
 			"liked": !liked, // 返回当前最终的状态
@@ -73,6 +76,8 @@ func CreateComment(client *ent.Client) echo.HandlerFunc {
 		if err != nil {
 			return err
 		}
+
+		slog.Info("CreateComment", "newComment", newComment)
 
 		return Success(c, newComment, 201)
 	}
