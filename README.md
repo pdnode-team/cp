@@ -5,6 +5,8 @@
 
 HTTP API for managing “CP” entries, tags, likes, and nested comments. Built with [Echo](https://echo.labstack.com/), [Ent](https://entgo.io/), SQLite, and [ZITADEL](https://zitadel.com/) OAuth2 token introspection.
 
+**Release status: beta** — expect breaking changes; run through the [deployment checklist](#deployment) before exposing the service publicly.
+
 ## Requirements
 
 - Go version **as specified in `go.mod`** (currently 1.26+)
@@ -205,7 +207,7 @@ curl -sS -H "Authorization: Bearer $TOKEN" http://localhost:8000/cp/1234567890/c
 
 ---
 
-## 4. Deployment
+## Deployment
 
 ### Build a binary
 
@@ -213,60 +215,41 @@ curl -sS -H "Authorization: Bearer $TOKEN" http://localhost:8000/cp/1234567890/c
 go build -o cp-website .
 ```
 
-Run from a directory that contains `secret.json` and is writable for `database.db` (or adjust the Ent DSN in code for production databases).
+Run from a directory that contains `secret.json` and is writable for `database.db` (or adjust the Ent DSN in code for production databases). Because this project uses `go-sqlite3`, build on the same OS family you deploy to (or cross-compile with a matching toolchain and libc).
 
 ### Process environment
 
-Minimal production example:
+Example for a VPS or bare-metal host listening behind Nginx/Caddy on the same machine (`127.0.0.1` upstream):
 
 ```bash
-export LISTEN_ADDR="0.0.0.0:8000"
-# Behind nginx/caddy on the same Docker network, trust the proxy subnet:
-export TRUSTED_PROXY_CIDRS="172.16.0.0/12,10.0.0.0/8"
+export LISTEN_ADDR="127.0.0.1:8000"
+export TRUSTED_PROXY_CIDRS="127.0.0.0/8,::1/128"
 export ZITADEL_INTROSPECT_CACHE_TTL="30s"
 ./cp-website
 ```
 
-If you only receive a port from the platform (e.g. PaaS):
+If the reverse proxy is on another host, set **`TRUSTED_PROXY_CIDRS`** to the subnet(s) from which your app sees those connections (not the public Internet). If nothing sits in front of the app, omit it and the server uses the TCP peer IP only.
+
+You can bind on all interfaces and set only a port:
 
 ```bash
-export PORT=8080
+export PORT=8000
 ./cp-website
 ```
 
 ### Reverse proxy
 
-- Terminate **TLS** at the proxy (recommended). Keep `Secure` middleware HSTS at `0` in the app unless you serve HTTPS directly.
-- Strip or overwrite `X-Forwarded-For` at the **edge** so clients cannot inject fake hops; append the real client IP at each trusted proxy.
-- Set **`TRUSTED_PROXY_CIDRS`** to the subnets from which your app sees connections (the proxy’s egress to the app).
-
-### Container (example)
-
-```dockerfile
-FROM golang:1.23-alpine AS build
-WORKDIR /src
-COPY . .
-RUN CGO_ENABLED=1 go build -o /cp-website .
-
-FROM alpine:latest
-RUN apk add --no-cache sqlite-libs ca-certificates
-WORKDIR /app
-COPY --from=build /cp-website .
-# Mount secret.json and a volume for database.db at runtime
-EXPOSE 8000
-ENV PORT=8000
-CMD ["./cp-website"]
-```
-
-> Note: `go-sqlite3` uses CGO; the Alpine build stage needs a C toolchain (`apk add build-base`). Adjust base images to match your CI.
+- Terminate **TLS** at Nginx/Caddy (recommended). Keep `Secure` middleware HSTS at `0` in the app unless you serve HTTPS directly from Go.
+- At the edge, **do not forward** client-supplied `X-Forwarded-For` blindly; have the proxy set or append the real client IP.
+- Match **`TRUSTED_PROXY_CIDRS`** to the addresses that connect **to this API** (usually loopback if the proxy is local).
 
 ### Operations checklist
 
-- [ ] `secret.json` or equivalent secrets **not** baked into the image; use mounts or a secret manager.
-- [ ] `TRUSTED_PROXY_CIDRS` matches your actual proxy topology (or leave unset if the app is not behind XFF).
-- [ ] Database backups for `database.db` (or migrate to PostgreSQL for higher concurrency).
-- [ ] CORS `AllowOrigins` updated in `main.go` (or refactored to env) for your frontend domain(s).
-- [ ] Structured logs (`slog`) shipped to your log stack; correlate with `X-Request-ID`.
+- [ ] `secret.json` is **not** in version control; restrict filesystem permissions (`chmod 600` or equivalent).
+- [ ] `TRUSTED_PROXY_CIDRS` matches how traffic actually reaches the app (or unset if no trusted proxy).
+- [ ] Regular backups of `database.db` (and a restore drill).
+- [ ] CORS `AllowOrigins` in `main.go` matches your real frontend origin(s) for beta.
+- [ ] Logs go somewhere durable if you care about incidents (`journald`, files, or a log shipper); correlate with `X-Request-ID`.
 
 ---
 
