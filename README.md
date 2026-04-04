@@ -1,5 +1,8 @@
 # CP Website API
 
+> [!IMPORTANT]
+> I'm an individual developer, and it's impossible for me to write all the code myself. I use AI for development assistance. I apologize if this doesn't align with your philosophy, but you don't have to use/contribute to it.
+
 HTTP API for managing “CP” entries, tags, likes, and nested comments. Built with [Echo](https://echo.labstack.com/), [Ent](https://entgo.io/), SQLite, and [ZITADEL](https://zitadel.com/) OAuth2 token introspection.
 
 ## Requirements
@@ -269,4 +272,4 @@ CMD ["./cp-website"]
 
 ## License
 
-See repository metadata (add a `LICENSE` file if you distribute this project).
+This project is not open source for the time being, but will be open source under the MIT license at an appropriate time.
