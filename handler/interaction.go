@@ -7,6 +7,7 @@ import (
 	"cp-website/ent/user"
 	"cp-website/model"
 	"log/slog"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
@@ -16,7 +17,10 @@ func ToggleLike(client *ent.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
 		dbUser := c.Get("user").(*ent.User)
-		cpID := ParseID(c.Param("id"))
+		cpID, err := ParseID(c.Param("id"))
+		if err != nil {
+			return err
+		}
 
 		// 检查用户是否已经点赞过这个 CP
 		liked, err := client.CP.Query().
@@ -51,14 +55,32 @@ func CreateComment(client *ent.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
 		dbUser := c.Get("user").(*ent.User)
-		cpID := ParseID(c.Param("id"))
+		cpID, err := ParseID(c.Param("id"))
+		if err != nil {
+			return err
+		}
 
 		req := new(model.CommentReq)
 		if err := c.Bind(req); err != nil {
-			return echo.NewHTTPError(400, err.Error())
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		if err := c.Validate(req); err != nil {
-			return echo.NewHTTPError(400, err.Error())
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		if req.ParentID != nil {
+			ok, err := client.Comment.Query().
+				Where(
+					comment.ID(*req.ParentID),
+					comment.HasCpWith(cp.ID(cpID)),
+				).
+				Exist(ctx)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				return echo.NewHTTPError(http.StatusBadRequest, "parent comment not found or not under this CP")
+			}
 		}
 
 		// 开始构建评论
@@ -87,7 +109,10 @@ func CreateComment(client *ent.Client) echo.HandlerFunc {
 func GetComments(client *ent.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
-		cpID := ParseID(c.Param("id"))
+		cpID, err := ParseID(c.Param("id"))
+		if err != nil {
+			return err
+		}
 
 		// 这里的查询十分强大：
 		// 我们只查顶层评论 (没有 Parent 的评论)，然后通过 WithChildren 把回复一起带出来！

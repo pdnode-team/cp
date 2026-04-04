@@ -5,7 +5,6 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"cp-website/ent"
@@ -121,15 +120,14 @@ func GetAllCP(client *ent.Client) echo.HandlerFunc {
 func GetCP(client *ent.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
-		id := c.Param("id")
-		val, err := strconv.ParseInt(id, 10, 64)
+		id, err := ParseID(c.Param("id"))
 		if err != nil {
 			return err
 		}
 
 		// 1. 获取 CP 基本信息和它的标签
 		dbCP, err := client.CP.Query().
-			Where(cp.ID(val)).
+			Where(cp.ID(id)).
 			WithTags().
 			Only(ctx)
 		if err != nil {
@@ -216,7 +214,10 @@ func CreateCP(client *ent.Client) echo.HandlerFunc {
 func DeleteCP(client *ent.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
-		id := ParseID(c.Param("id"))
+		id, err := ParseID(c.Param("id"))
+		if err != nil {
+			return err
+		}
 
 		dbCP, err := client.CP.Query().Where(cp.ID(id)).WithOwner().Only(ctx)
 
@@ -240,7 +241,10 @@ func DeleteCP(client *ent.Client) echo.HandlerFunc {
 func UpdateCP(client *ent.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
-		id := ParseID(c.Param("id"))
+		id, err := ParseID(c.Param("id"))
+		if err != nil {
+			return err
+		}
 		dbUser := c.Get("user").(*ent.User)
 
 		req := new(model.CPReq)
