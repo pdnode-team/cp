@@ -12,6 +12,7 @@ import { controllers } from '#generated/controllers'
 import router from '@adonisjs/core/services/router'
 
 router.on('/').render('pages/home').as('home')
+router.on('/about').render('pages/about').as('about')
 
 router
   .group(() => {
