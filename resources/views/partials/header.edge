@@ -1,0 +1,22 @@
+<header>
+  <div>
+    <div class="site-brand">
+      @link({ route: 'home' })
+        Pdnode CP Website
+      @end
+    </div>
+    <div>
+      <nav>
+        @if(auth.user)
+          @!avatar({ initials: auth.user.initials })
+          @form({ route: 'session.destroy', method: 'POST' })
+            @!button({ text: 'Logout' })
+          @end
+        @else
+          @!link({ route: 'new_account.create', text: 'Signup' })
+          @!link({ route: 'session.create', text: 'Login' })
+        @end
+      </nav>
+    </div>
+  </div>
+</header>
