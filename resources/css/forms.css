@@ -1,0 +1,80 @@
+.form-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 400px;
+  margin: auto;
+}
+.form-container h1 { font-size: 32px; letter-spacing: -0.5px; margin: 5px 0; }
+.form-container p { font-size: 18px; margin-bottom: 48px; color: var(--gray-6); }
+
+form { display: flex; flex-direction: column; gap: 24px; }
+label { margin-bottom: 4px; display: block; font-size: 14px; font-weight: 500; }
+
+input, textarea, button, select {
+  width: 100%;
+  border-radius: 4px;
+  font: inherit;
+}
+input, select {
+  height: 40px;
+  border: 1px solid var(--gray-4);
+  padding: 0 16px;
+}
+textarea { height: 10rem; border: 1px solid var(--gray-4); padding: 16px; }
+
+/* Select 专用样式 */
+select {
+  appearance: none;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+  cursor: pointer;
+}
+select:focus { outline: none; border-color: var(--gray-12); }
+
+button {
+  background: var(--gray-12);
+  color: #fff;
+  border: none;
+  padding: 10px;
+  font-weight: 500;
+}
+button:hover { background: var(--gray-10); }
+
+/* Validation Styles */
+input[data-invalid='true'], textarea[data-invalid='true'], select[data-invalid='true'] {
+  border-color: #fb2c36;
+}
+input[data-invalid='true'] + div, textarea[data-invalid='true'] + div, select[data-invalid='true'] + div {
+  color: #fb2c36;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* 针对所有禁用的输入框、文本域和下拉框 */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  /* 1. 改变背景色（通常使用浅灰色） */
+  background-color: var(--gray-3); 
+  
+  /* 2. 改变文字颜色 */
+  color: var(--gray-7);
+  
+  /* 3. 改变边框颜色（使其不那么显眼） */
+  border-color: var(--gray-4);
+  
+  /* 4. 修改鼠标指针（核心体验：变成禁行标志） */
+  cursor: not-allowed;
+  
+  /* 5. 降低透明度（增加视觉上的“变暗”感） */
+  opacity: 0.7;
+
+  /* 6. 防止点击时出现高亮边框 */
+  outline: none;
+}

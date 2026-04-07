@@ -1,0 +1,11 @@
+:root {
+  --gray-1: oklch(98.5% 0 0);
+  --gray-2: oklch(97% 0 0);
+  --gray-3: oklch(92.2% 0 0);
+  --gray-4: oklch(87% 0 0);
+  --gray-6: oklch(55.6% 0 0);
+  --gray-7: oklch(43.9% 0 0);
+  --gray-8: oklch(37.1% 0 0);
+  --gray-10: oklch(26.9% 0 0);
+  --gray-12: oklch(14.5% 0 0);
+}
