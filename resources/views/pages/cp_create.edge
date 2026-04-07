@@ -1,4 +1,5 @@
 @layout()
+@vite(['resources/js/cp_create.ts'])
 <div class="hero">
   <div class="hero-header">
     <h1>Create New CP</h1>
@@ -36,6 +37,14 @@
         @!field.error()
       @end
     </div>
+    <p id="hint-update-text" class="sub-text text-link-action" style="position: relative; top: -2rem;">I would like to change the existing character.</p>
+    <fieldset id="char1-group" style="border: none; padding: 0; margin: 0;">
+      @field.root({ name: 'character1-name' })
+        @!field.label({ text: 'Character 1 Name' })
+        @!input.control({ type: 'text', id: "char1-name" })
+        @!field.error()
+      @end
+    </fieldset>
   @end
   
   <button class="submit-button">Submit</button>
@@ -45,12 +54,3 @@
 <template id="data" data-characters="{{ await js.stringify(characters) }}"></template>
 @end
 
-<script>
-  const data = document.getElementById('data')
-  const characters = JSON.parse(data.dataset.characters)
-  console.log("characters: ", characters)
-  const char1Select = document.getElementById('char1-select')
-  char1Select.addEventListener('change', (e) => {
-    console.log(e.target.value)     
-  })
-</script>

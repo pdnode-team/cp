@@ -13,6 +13,7 @@
       name: $context.name,
       id: $context.id,
       class: classes,
+      disabled: $props.get('disabled') || false,
       'aria-invalid': $context.hasErrors ? 'true' : false,
       'data-invalid': $context.hasErrors ? 'true' : false,
       'aria-describedby': $context.hasErrors ? `${$context.id}-error` : '',
@@ -25,6 +26,7 @@
     .merge({
       name: $context.name,
       id: $context.id,
+      disabled: $props.get('disabled') || false,
       value: inputValue,
       class: classes,
       type: useOldValue,

@@ -14,6 +14,8 @@
   
   {{-- 默认空选项 --}}
   <option value="" disabled {{ !selectedValue ? 'selected' : '' }}>Select a character</option>
+  <option value="new" {{ selectedValue === 'new' ? 'selected' : '' }}>Create New One</option>
+
 
   {{-- 动态渲染传入的角色 --}}
   @each(item in options)
@@ -23,5 +25,4 @@
   @end
 
   {{-- 固定 Other 选项 --}}
-  <option value="new" {{ selectedValue === 'new' ? 'selected' : '' }}>Create New One</option>
 </select>
