@@ -9,6 +9,8 @@
       <nav>
         @!link({ route: 'about', text: 'About' })
         @if(auth.user)
+          @!link({ route: 'cps.index', text: 'Explore' })
+
           @!avatar({ initials: auth.user.initials })
           @form({ route: 'session.destroy', method: 'POST' })
             @!button({ text: 'Logout' })

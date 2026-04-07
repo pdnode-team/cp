@@ -26,6 +26,9 @@ router
 
 router
   .group(() => {
+    router.get('explore', [controllers.Cps, 'index'])
+    router.get('create', [controllers.Cps, 'create'])
+
     router.post('logout', [controllers.Session, 'destroy'])
   })
   .use(middleware.auth())

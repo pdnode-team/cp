@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   --gray-1: oklch(98.5% 0 0);
   --gray-2: oklch(97% 0 0);
@@ -98,12 +100,28 @@ main {
   padding: 100px 50px;
   max-width: 880px;
 }
+/* 新增样式 */
+.hero-header {
+  display: flex;
+  justify-content: space-between; /* 左右分布 */
+  align-items: center;           /* 垂直居中 */
+  margin-bottom: 15px;           /* 保持原有间距 */
+}
+
+/* 覆盖原有 h1 的 margin-bottom，因为父容器已经有了 */
 .hero h1 {
-  margin-bottom: 15px;
+  margin-bottom: 0; 
   font-size: 52px;
   font-weight: 600;
   letter-spacing: -1px;
   line-height: 1.05;
+}
+
+/* 调整按钮宽度，因为你全局设置了 button { width: 100% } */
+.hero-header .create-button {
+  width: auto;       /* 覆盖掉 100% 宽度 */
+  padding: 8px 20px; /* 给点左右内边距 */
+  white-space: nowrap; /* 防止文字换行 */
 }
 .hero p {
   font-size: 22px;
@@ -192,6 +210,11 @@ textarea[data-invalid='true'] + div {
   font-size: 14px;
   font-weight: 500;
   margin-top: 2px;
+}
+textarea {
+  height: 10rem;
+  border: 1px solid var(--gray-4);
+  padding: 16px;
 }
 
 button {
@@ -382,4 +405,64 @@ button:hover {
   to {
     transform: scale(1);
   }
+}
+.submit-button {
+  width: 5rem;
+  margin: 1rem auto;
+}
+
+/* Select 基础样式 */
+select {
+  width: 100%;
+  height: 40px;
+  border-radius: 4px;
+  font: inherit;
+  border: 1px solid var(--gray-4);
+  padding: 0 16px;
+  background-color: #fff;
+  color: var(--gray-10);
+  cursor: pointer;
+  appearance: none; /* 清除默认样式，以便自定义箭头 */
+  
+  /* 自定义下拉箭头 (使用 SVG 保证清晰度) */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px; /* 为箭头留出空间 */
+  transition: border-color 0.15s ease;
+}
+
+/* 焦点状态 */
+select:focus {
+  outline: none;
+  border-color: var(--gray-12);
+}
+
+/* 无效/错误状态 */
+select[data-invalid='true'] {
+  border-color: #fb2c36;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23fb2c36'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+}
+
+/* 禁用状态 */
+select:disabled {
+  background-color: var(--gray-1);
+  color: var(--gray-6);
+  cursor: not-allowed;
+}
+
+/* 下拉菜单内的选项样式 (注意：部分浏览器对 option 的样式支持有限) */
+select option {
+  padding: 10px;
+  background: #fff;
+  color: var(--gray-10);
+}
+
+/* 适配你之前的错误提示样式 */
+select[data-invalid='true'] + div {
+  color: #fb2c36;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 2px;
 }

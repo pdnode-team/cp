@@ -1,0 +1,27 @@
+@let(selectedValue = $context.oldValue || $props.get('value') || '')
+@let(classes = ['input-select'])
+
+<select {{ $props
+  .except(['options', 'value'])
+  .merge({
+    name: $context.name,
+    id: $context.id,
+    class: classes,
+    'aria-invalid': $context.hasErrors ? 'true' : false,
+    'data-invalid': $context.hasErrors ? 'true' : false,
+  })
+  .toAttrs() }}>
+  
+  {{-- 默认空选项 --}}
+  <option value="" disabled {{ !selectedValue ? 'selected' : '' }}>Select a character</option>
+
+  {{-- 动态渲染传入的角色 --}}
+  @each(item in options)
+    <option value="{{ item.id }}" {{ String(selectedValue) === String(item.id) ? 'selected' : '' }}>
+      {{ item.name }}
+    </option>
+  @end
+
+  {{-- 固定 Other 选项 --}}
+  <option value="new" {{ selectedValue === 'new' ? 'selected' : '' }}>Create New One</option>
+</select>

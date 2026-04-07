@@ -1,0 +1,21 @@
+@layout()
+  <div class="hero">
+    <div class="hero-header">
+      <h1>Explore</h1>
+      @link({ route: 'cps.create' })
+        <button class="create-button">Create</button>
+      @end
+    </div>
+    <p>No one has posted anything yet.</p>
+
+    </div>
+    <p>No one has posted anything yet.</p>
+
+  </div>
+  <template id="data" data-cps="{{ cps }}" data-test="{{ test }}"></template>
+@end
+
+<script>
+  const data = document.getElementById('data')
+  console.log("test:" +  data.dataset.test)
+</script>

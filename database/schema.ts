@@ -7,6 +7,71 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
+export class CharacterSchema extends BaseModel {
+  static $columns = ['createdAt', 'description', 'id', 'image', 'name', 'origin', 'tagNames', 'updatedAt', 'userId'] as const
+  $columns = CharacterSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare description: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare image: string
+  @column()
+  declare name: string
+  @column()
+  declare origin: string | null
+  @column()
+  declare tagNames: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number | null
+}
+
+export class CommentSchema extends BaseModel {
+  static $columns = ['comment', 'cpId', 'createdAt', 'id', 'updatedAt', 'userId'] as const
+  $columns = CommentSchema.$columns
+  @column()
+  declare comment: string
+  @column()
+  declare cpId: number | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number | null
+}
+
+export class CpSchema extends BaseModel {
+  static $columns = ['charOneId', 'charTwoId', 'createdAt', 'description', 'id', 'image', 'name', 'tagNames', 'updatedAt', 'voteCount'] as const
+  $columns = CpSchema.$columns
+  @column()
+  declare charOneId: number | null
+  @column()
+  declare charTwoId: number | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column()
+  declare description: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare image: string
+  @column()
+  declare name: string
+  @column()
+  declare tagNames: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare voteCount: number
+}
+
 export class UserSchema extends BaseModel {
   static $columns = ['createdAt', 'email', 'fullName', 'id', 'password', 'updatedAt'] as const
   $columns = UserSchema.$columns
@@ -22,4 +87,19 @@ export class UserSchema extends BaseModel {
   declare password: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+}
+
+export class VoteSchema extends BaseModel {
+  static $columns = ['cpId', 'createdAt', 'id', 'updatedAt', 'userId'] as const
+  $columns = VoteSchema.$columns
+  @column()
+  declare cpId: number | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number | null
 }

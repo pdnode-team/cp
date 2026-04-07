@@ -1,26 +1,38 @@
-@let(useOldValue = !['password', 'file', 'checkbox', 'radio'].includes($props.get('type')))
+@let(useOldValue = !['password', 'file', 'checkbox', 'radio', 'textarea'].includes($props.get('type')))
 @let(inputValue = useOldValue
   ? $context.oldValue || $props.get('value') || ''
   : $props.get('value') || ''
 )
 @let(classes = [])
 
-<input {{ $props
-  .except(['value'])
-  .merge({
-    name: $context.name,
-    id: $context.id,
-    value: inputValue,
-    class: classes,
-    type: 'text',
-    'aria-invalid': $context.hasErrors ? 'true' : false,
-    'data-invalid': $context.hasErrors ? 'true' : false,
-    'autofocus': $context.hasErrors ? 'true' : false,
-    'aria-describedby': $context.hasErrors ? `${$context.id}-error` : '',
-  })
-  .mergeIf($props.get('keepChecked'), {
-    checked: !!(
-      $context.oldValue && ($context.oldValue === inputValue || $context.oldValue === 'on')
-    ),
-  })
-  .toAttrs() }} />
+@if(type === 'textarea')
+  {{-- 如果类型是 textarea，渲染文本域标签 --}}
+  <textarea {{ $props
+    .except(['value', 'type'])
+    .merge({
+      name: $context.name,
+      id: $context.id,
+      class: classes,
+      'aria-invalid': $context.hasErrors ? 'true' : false,
+      'data-invalid': $context.hasErrors ? 'true' : false,
+      'aria-describedby': $context.hasErrors ? `${$context.id}-error` : '',
+    })
+    .toAttrs() }}>{{ inputValue }}</textarea>
+@else
+  {{-- 否则渲染标准的 input 标签 --}}
+  <input {{ $props
+    .except(['value'])
+    .merge({
+      name: $context.name,
+      id: $context.id,
+      value: inputValue,
+      class: classes,
+      type: useOldValue,
+      'aria-invalid': $context.hasErrors ? 'true' : false,
+      'data-invalid': $context.hasErrors ? 'true' : false,
+      'autofocus': $context.hasErrors ? 'true' : false,
+      'aria-describedby': $context.hasErrors ? `${$context.id}-error` : '',
+    })
+    .toAttrs() }} />
+
+@end

@@ -1,0 +1,56 @@
+@layout()
+<div class="hero">
+  <div class="hero-header">
+    <h1>Create New CP</h1>
+  </div>
+  @form({ route: '', method: 'POST' })
+    <div>
+      @field.root({ name: 'cp_name' })
+        @!field.label({ text: 'CP Name' })
+        @!input.control({ type: 'text' })
+        @!field.error()
+      @end
+    </div>
+    <div>
+      @field.root({ name: 'cp_description' })
+        @!field.label({ text: 'CP Description' })
+        @!input.control({ type: 'textarea' })
+        @!field.error()
+      @end
+    </div>
+    <div>
+      @field.root({ name: 'cp_image' })
+        @!field.label({ text: 'CP Image URL' })
+        @!input.control({ type: 'text' })
+        @!field.error()
+      @end
+    </div>
+    <div>
+      @field.root({ name: 'character1' })
+        @!field.label({ text: 'Character 1' })
+        @!input.select({ 
+          options: characters, 
+          value: '',
+          id: 'char1-select'
+        })
+        @!field.error()
+      @end
+    </div>
+  @end
+  
+  <button class="submit-button">Submit</button>
+
+
+</div>
+<template id="data" data-characters="{{ await js.stringify(characters) }}"></template>
+@end
+
+<script>
+  const data = document.getElementById('data')
+  const characters = JSON.parse(data.dataset.characters)
+  console.log("characters: ", characters)
+  const char1Select = document.getElementById('char1-select')
+  char1Select.addEventListener('change', (e) => {
+    console.log(e.target.value)     
+  })
+</script>
