@@ -42,11 +42,12 @@ jobs:
         continue-on-error: true
         run: |
           cd website
-          pnpm install --frozen-lockfile
+          pnpm install --frozen-lockfile || true
           pnpm approve-builds --all
 
       - name: Build Frontend
         run: |
+          pnpm install --frozen-lockfile
           pnpm build
           # 假设你的 SvelteKit 导出目录是 website/build
           # 确保 pb_public 文件夹存在
