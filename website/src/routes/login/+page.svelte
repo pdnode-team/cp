@@ -22,6 +22,11 @@
 		} catch (err: any) {
 			const errorData = err.data?.data || {};
 
+			if (Object.keys(errorData).length === 0 && err.status == 400){
+				errorText = err.data.message
+				return
+			}
+
 			// 获取第一个字段的错误消息
 			// 例如："passwordConfirm: Values don't match."
 			const firstKey = Object.keys(errorData)[0];
