@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"log"
 	"os"
 
@@ -10,6 +11,9 @@ import (
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"github.com/pocketbase/pocketbase/tools/osutils"
 )
+
+//go:embed all:pb_public
+var embeddedFiles embed.FS
 
 func main() {
 	app := pocketbase.New()
