@@ -39,13 +39,13 @@ jobs:
           pnpm -v
       
       - name: Install dependencies
-        continue-on-error: true
+        working-directory: ./website
         run: |
-          cd website
           pnpm install --frozen-lockfile || true
           pnpm approve-builds --all
 
       - name: Build Frontend
+        working-directory: ./website
         run: |
           pnpm install --frozen-lockfile
           pnpm build
