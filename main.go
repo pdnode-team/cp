@@ -2,6 +2,8 @@ package main
 
 import (
 	"embed"
+	"fmt"
+	"io/fs"
 	"log"
 	"os"
 
@@ -16,6 +18,19 @@ import (
 var embeddedFiles embed.FS
 
 func main() {
+	fmt.Println("--- 开始检查嵌入的文件列表 ---")
+	err := fs.WalkDir(embeddedFiles, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		fmt.Printf("发现路径: %s (目录: %v)\n", path, d.IsDir())
+		return nil
+	})
+	if err != nil {
+		fmt.Println("检查失败:", err)
+	}
+	fmt.Println("--- 检查结束 ---")
+
 	app := pocketbase.New()
 
 	migratecmd.MustRegister(app, app.RootCmd, migratecmd.Config{
