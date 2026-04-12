@@ -23,7 +23,7 @@
 			const errorData = err.data?.data || {};
 
 			if (Object.keys(errorData).length === 0 && err.status == 400){
-				errorText = err.data.message
+				errorText = err.data?.message ?? 'Login failed. Please try again.'
 				return
 			}
 
