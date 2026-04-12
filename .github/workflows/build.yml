@@ -41,8 +41,7 @@ jobs:
       - name: Build Frontend
         run: |
           cd website
-          pnpm i
-          pnpm approve-builds --all
+          pnpm i --frozen-lockfile
           pnpm build
           # 假设你的 SvelteKit 导出目录是 website/build
           # 确保 pb_public 文件夹存在
