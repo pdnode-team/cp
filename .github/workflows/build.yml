@@ -60,19 +60,21 @@ jobs:
           # 禁用 CGO 以实现静态链接，确保二进制文件在不同 Linux 发行版都能跑
           export CGO_ENABLED=0
           
-          # 编译 Linux 版本
-          GOOS=linux GOARCH=amd64 go build -o pdnode-cp-linux main.go
+          export TAG_NAME=${GITHUB_REF#refs/tags/}
           
-          # 编译 Windows 版本
-          GOOS=windows GOARCH=amd64 go build -o pdnode-cp-windows.exe main.go
+          GOOS=linux GOARCH=amd64 go build -o "pdnode-cp-${TAG_NAME}-linux" main.go
+          GOOS=windows GOARCH=amd64 go build -o "pdnode-cp-${TAG_NAME}-windows.exe" main.go
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            pdnode-cp-linux
-            pdnode-cp-windows.exe
+            pdnode-cp-*-linux
+            pdnode-cp-*-windows.exe
           # 这里的 token 是 GitHub 自动提供的，不需要你手动设置
           token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-dev') || contains(github.ref, '-rc') }}
+          body: |
+            ${{ (contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-dev') || contains(github.ref, '-rc')) && '> [!CAUTION]\n> **This is a Pre-release Version**> This version is intended for testing purposes only and may contain unstable elements; please do not use it in a production environment.\n\n---' || '' }}
           generate_release_notes: true # 自动根据 commit 生成更新日志
