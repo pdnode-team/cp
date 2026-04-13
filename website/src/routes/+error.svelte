@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { page } from '$app/state'; // Svelte 5 语法
-  // 如果是 Svelte 4，使用 import { page } from '$app/stores';\
+  import { page } from '$app/state'
   let modalRef: HTMLDialogElement
 </script>
 
@@ -8,7 +7,7 @@
   <div class="hero-content text-center">
     <div class="max-w-lg">
       <h1 class="text-9xl font-bold">{page.status}</h1>
-      <p class="py-6 text-xl">{page.error?.message}</p>
+      <p class="py-6 text-xl">{page.error?.message ?? 'An unexpected error occurred.'}</p>
       <p class="py-6 text-lg">If you believe this issue should not exist, <a onclick={() => modalRef.showModal()} class="link link-primary" href="#contact-us">please contact us.</a></p>
       <a href="/" class="btn btn-primary">Back to Home</a>
     </div>
@@ -22,8 +21,8 @@
 
     <ul class="gap-2 flex flex-col">
         <li>Email: bret@pdnode.com</li>
-        <li><a href="https://github.com/pdnode-team/cp/issues" class="link link-primary" target="_blank">Github Issues</a></li>
-        <li><a href="https://chat.p67.click" class="link link-primary" target="_blank">Use Pdnode Team Chat (Zulip)</a></li>
+        <li><a href="https://github.com/pdnode-team/cp/issues" class="link link-primary" target="_blank" rel="noopener noreferrer">GitHub Issues</a></li>
+        <li><a href="https://chat.p67.click" class="link link-primary" target="_blank" rel="noopener noreferrer">Use Pdnode Team Chat (Zulip)</a></li>
     </ul>
     
     <div class="modal-action">
