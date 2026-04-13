@@ -76,5 +76,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-dev') || contains(github.ref, '-rc') }}
           body: |
-            ${{ (contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-dev') || contains(github.ref, '-rc')) && '> [!CAUTION]\n> **This is a Pre-release Version**> This version is intended for testing purposes only and may contain unstable elements; please do not use it in a production environment.\n\n---' || '' }}
+            ${{ (contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-dev') || contains(github.ref, '-rc')) && '> [!CAUTION]
+            > **This is a Pre-release Version**
+            > This version is intended for testing purposes only and may contain unstable elements; please do not use it in a production environment.
+            
+            ---' || '' }}
           generate_release_notes: true # 自动根据 commit 生成更新日志
