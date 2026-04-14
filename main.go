@@ -41,9 +41,29 @@ func main() {
 	app.OnRecordCreateRequest("characters").BindFunc(validateCPsOwnership)
 	app.OnRecordUpdateRequest("characters").BindFunc(validateCPsOwnership)
 
+	app.OnRecordCreateRequest().BindFunc(validateIdImmutable)
+	app.OnRecordUpdateRequest().BindFunc(validateIdImmutable)
+
 	if err := app.Start(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// 阻止自定义IDs
+func validateIdImmutable(e *core.RecordRequestEvent) error {
+	// Superuser 绕过
+	if e.Auth != nil && e.Auth.IsSuperuser() {
+		return e.Next()
+	}
+
+	// 检查用户有没有传入id
+	if e.Record.Id != "" {
+		return apis.NewBadRequestError("Invalid request data", map[string]validation.Error{
+			"id": validation.NewError("validation_id_immutable", "Custom record IDs are not allowed."),
+		})
+	}
+
+	return e.Next()
 }
 
 // 通用校验逻辑
