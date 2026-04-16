@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/osutils"
@@ -49,6 +50,19 @@ func Setup(app core.App) {
 		{Label: "/api/", Duration: 10, MaxRequests: 300},
 	}
 
+	// --- Proxy ---
+
+	if v, ok := os.LookupEnv("TRUSTED_PROXY_HEADERS"); ok {
+		headers := []string{}
+		for _, h := range strings.Split(v, ",") {
+			if trimmed := strings.TrimSpace(h); trimmed != "" {
+				headers = append(headers, trimmed)
+			}
+		}
+		settings.TrustedProxy.Headers = headers
+	}
+	setBoolIfPresent("USE_LEFT_MOST_IP", &settings.TrustedProxy.UseLeftmostIP)
+
 	// Batch API
 	setBoolIfPresent("ENABLE_BATCH_API", &settings.Batch.Enabled)
 	setIntIfPresent("BATCH_MAX_REQUESTS", &settings.Batch.MaxRequests)
@@ -94,6 +108,8 @@ func Setup(app core.App) {
 	// Save
 	if err := app.Save(settings); err != nil {
 		app.Logger().Error("Save Global Config Failed:", "error", err)
-		panic("Save Global Config Failed")
+		if osutils.IsProbablyGoRun() {
+			panic("Critical config sync failed: " + err.Error())
+		}
 	}
 }
