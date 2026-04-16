@@ -4,6 +4,7 @@ go 1.26.1
 
 require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
+	github.com/joho/godotenv v1.5.1
 	github.com/pocketbase/dbx v1.12.0
 	github.com/pocketbase/pocketbase v0.36.9
 )

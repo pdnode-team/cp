@@ -6,12 +6,14 @@ import (
 	"log"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/joho/godotenv"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"github.com/pocketbase/pocketbase/tools/osutils"
+
 	_ "pdnode.com/x/cp/migrations"
 )
 
@@ -21,6 +23,11 @@ var embeddedFiles embed.FS
 func main() {
 	app := pocketbase.New()
 
+	err := godotenv.Load()
+	if err != nil {
+		app.Logger().Warn("Warning: .env file not found, using system environment variables", "err", err)
+	}
+
 	migratecmd.MustRegister(app, app.RootCmd, migratecmd.Config{
 		// enable auto creation of migration files when making collection changes in the Dashboard
 		// (the IsProbablyGoRun check is to enable it only during development)
@@ -28,6 +35,8 @@ func main() {
 	})
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
+		Setup(se.App)
+
 		publicFS, err := fs.Sub(embeddedFiles, "pb_public")
 		if err != nil {
 			return err
