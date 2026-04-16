@@ -107,9 +107,6 @@ func Setup(app core.App) {
 
 	// Save
 	if err := app.Save(settings); err != nil {
-		app.Logger().Error("Save Global Config Failed:", "error", err)
-		if osutils.IsProbablyGoRun() {
-			panic("Critical config sync failed: " + err.Error())
-		}
+		app.Logger().Error("Save Global Config Failed:", "err", err)
 	}
 }

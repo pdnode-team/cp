@@ -25,7 +25,7 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		app.Logger().Warn("Warning: .env file not found, using system environment variables")
+		app.Logger().Warn("Warning: .env file not found, using system environment variables", "err", err)
 	}
 
 	migratecmd.MustRegister(app, app.RootCmd, migratecmd.Config{
