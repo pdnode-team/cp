@@ -11,7 +11,7 @@
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 pb-12 max-w-6xl mx-auto">
-  <a href="https://chat.p67.click/#narrow/channel/4-Announcement/topic/cp/near/70575.p67.click" target="_blank" class="card bg-base-100 border border-base-200 hover:border-primary hover:shadow-xl transition-all">
+  <a href="https://chat.p67.click/#narrow/channel/4-Announcement/topic/cp/near/70575" target="_blank" class="card bg-base-100 border border-base-200 hover:border-primary hover:shadow-xl transition-all">
     <div class="card-body p-8">
       <h3 class="card-title text-xl group-hover:text-primary">Feel free to post your own CP</h3>
       <p class="text-base-content/70 mt-2">We welcome everyone to post their own pairings, but some basic requirements need to be met.</p>
