@@ -62,8 +62,8 @@ jobs:
           
           export TAG_NAME=${GITHUB_REF#refs/tags/}
           
-          GOOS=linux GOARCH=amd64 go build -o "pdnode-cp-${TAG_NAME}-linux" main.go
-          GOOS=windows GOARCH=amd64 go build -o "pdnode-cp-${TAG_NAME}-windows.exe" main.go
+          GOOS=linux GOARCH=amd64 go build -o "pdnode-cp-${TAG_NAME}-linux" .
+          GOOS=windows GOARCH=amd64 go build -o "pdnode-cp-${TAG_NAME}-windows.exe" .
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
