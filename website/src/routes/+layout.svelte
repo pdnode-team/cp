@@ -26,7 +26,7 @@
 		<a href="/about" class="btn text-base-content/80 btn-ghost btn-sm">About</a>
 
 		{#if user}
-			<a href="/cps" class="btn text-base-content/80 btn-ghost btn-sm">Explore</a>
+			<a href="/explore" class="btn text-base-content/80 btn-ghost btn-sm">Explore</a>
 			<div class="dropdown dropdown-end">
 				<button class="placeholder btn avatar btn-circle btn-ghost">
 					<div
