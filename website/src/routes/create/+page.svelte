@@ -1,6 +1,5 @@
 <script lang="ts">
 	import pb from '$lib/pocketbase';
-	import Error from '../+error.svelte';
 
 	let errorText = $state('');
 	let tags = $state<string[]>([]);
