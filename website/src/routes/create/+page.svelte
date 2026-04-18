@@ -1,10 +1,61 @@
 <script lang="ts">
 	import pb from '$lib/pocketbase';
+	import { onMount } from 'svelte';
 
 	let errorText = $state('');
 	let tags = $state<string[]>([]);
 	let currentInput = $state('');
 	let newCharDialog = $state() as HTMLDialogElement;
+
+	let cpName = $state('');
+	let cpDescription = $state('');
+	let cpPictures: FileList | undefined = $state();
+	let cpCharacter1 = $state('');
+	let cpCharacter2 = $state('');
+
+
+	const createCP = async () => {
+		errorText = ""
+
+		if (!cpName.trim() || !cpDescription.trim() || !cpPictures || (cpPictures.length < 1 || cpPictures.length > 5) || !cpCharacter1.trim() || !cpCharacter2.trim) {
+			errorText = 'All fields must be filled out'
+			return;
+		}
+
+		if (cpCharacter1 === cpCharacter2) {
+			errorText = 'Character #1 and Character #2 cannot be the same'
+			return
+		}
+
+		const formData = new FormData();
+		formData.append('name', cpName);
+		formData.append('description', cpDescription);
+		formData.append('owner', pb.authStore.record!.id);
+		for (let file of cpPictures) {
+			formData.append('images', file);
+		}
+		tags.forEach((tag) => {
+			formData.append('tag_names', tag);
+		});
+		formData.append('characters', cpCharacter1)
+		formData.append('characters', cpCharacter2)
+
+		try {
+			await pb.collection('cps').create(formData);
+			window.location.pathname = "/explore"
+		} catch (err: any) {
+			errorText = err.data.data?.message ?? 'Create failed. Please try again.';
+
+			const firstKey = Object.keys(err.data.data)[0];
+			if (firstKey) {
+				const friendlyMessage = `${firstKey}: ${err.data.data[firstKey].message}`;
+				console.error(friendlyMessage);
+				errorText = friendlyMessage;
+				return;
+			}
+		}
+
+	}
 
 	function addTag(e: KeyboardEvent) {
 		if (e.key === 'Enter' && currentInput.trim()) {
@@ -89,6 +140,7 @@
 			newCharTags = [];
 			newCharTagsCurrentInput = '';
 			newCharErrorText = '';
+			reloadCharacters()
 		} catch (err: any) {
 			errorText = err.data.data?.message ?? 'Create failed. Please try again.';
 
@@ -101,6 +153,15 @@
 			}
 		}
 	};
+
+	// Get Char(s)
+	let characters = $state<any[]>([]);
+	const reloadCharacters = async () => {
+		characters = await pb.collection('characters').getFullList()
+	}
+	onMount(() => {
+		reloadCharacters()
+	});
 </script>
 
 <!-- New Char Dialog -->
@@ -203,7 +264,6 @@
 		</div>
 	</div>
 </dialog>
-
 <!-- End of Dialog -->
 
 <div class="flex min-h-[70vh] flex-col items-center justify-center px-4 py-12">
@@ -222,6 +282,7 @@
 						placeholder="XXXX & YYYY"
 						class="input-bordered input w-full"
 						autocomplete="name"
+						bind:value={cpName}
 						required
 					/>
 				</label>
@@ -233,6 +294,7 @@
 						placeholder="description"
 						class="textarea w-full"
 						maxlength="1000"
+						bind:value={cpDescription}
 						required
 					></textarea>
 				</label>
@@ -247,6 +309,7 @@
 						id="file-upload"
 						class="file-input-bordered file-input w-full file-input-primary"
 						accept="image/*"
+						bind:files={cpPictures}
 						multiple
 						required
 					/>
@@ -281,10 +344,14 @@
 						class="select-bordered select w-full"
 						autocomplete="name"
 						onchange={handleChangeSelect}
+						bind:value={cpCharacter1}
 						required
 					>
 						<option value="" selected disabled>Select a character</option>
 						<option value="new">Create a new character</option>
+						{#each characters as character}
+							<option value={character.id}>{character.name}</option>
+						{/each}
 					</select>
 				</label>
 
@@ -296,17 +363,21 @@
 						class="select-bordered select w-full"
 						autocomplete="name"
 						onchange={handleChangeSelect}
+						bind:value={cpCharacter2}
 						required
 					>
 						<option value="" selected disabled>Select a character</option>
 						<option value="new">Create a new character</option>
+						{#each characters as character}
+							<option value={character.id}>{character.name}</option>
+						{/each}
 					</select>
 				</label>
 
 				<p class="text-red-500">{errorText}</p>
 
 				<div class="form-control mt-6">
-					<button type="submit" class="btn w-full text-lg btn-primary">Create</button>
+					<button onclick={createCP} type="submit" class="btn w-full text-lg btn-primary">Create</button>
 				</div>
 			</div>
 		</div>
