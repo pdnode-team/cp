@@ -77,6 +77,11 @@ func validateIdImmutable(e *core.RecordRequestEvent) error {
 
 // 校验 CP 中的Characters是否属于当前操作者
 func validateCharactersOwnership(e *core.RecordRequestEvent) error {
+
+	if e.Auth == nil {
+		return apis.NewUnauthorizedError("Unauthorized", nil)
+	}
+
 	// Superuser 绕过
 	if e.Auth != nil && e.Auth.IsSuperuser() {
 		return e.Next()
@@ -112,7 +117,7 @@ func validateCharactersOwnership(e *core.RecordRequestEvent) error {
 	// 如果发现有角色不属于该用户，拦截请求
 	if count > 0 {
 		return apis.NewBadRequestError("Illegal association", map[string]validation.Error{
-			"members": validation.NewError("invalid_character_owner", "One or more selected characters do not belong to you."),
+			"characters": validation.NewError("invalid_character_owner", "One or more selected characters do not belong to you."),
 		})
 	}
 

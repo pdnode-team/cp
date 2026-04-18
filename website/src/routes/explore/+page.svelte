@@ -1,6 +1,5 @@
 <script lang="ts">
 	import pb from '$lib/pocketbase';
-	import { onMount } from 'svelte';
 
 	type ViewMode = 'cps' | 'characters';
 	let mode = $state<ViewMode>('cps');

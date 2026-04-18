@@ -17,7 +17,7 @@
 	const createCP = async () => {
 		errorText = ""
 
-		if (!cpName.trim() || !cpDescription.trim() || !cpPictures || (cpPictures.length < 1 || cpPictures.length > 5) || !cpCharacter1.trim() || !cpCharacter2.trim) {
+		if (!cpName.trim() || !cpDescription.trim() || !cpPictures || (cpPictures.length < 1 || cpPictures.length > 3) || !cpCharacter1.trim() || !cpCharacter2.trim()) {
 			errorText = 'All fields must be filled out'
 			return;
 		}
