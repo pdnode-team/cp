@@ -19,14 +19,14 @@
 >
 	<div class="flex-1">
 		<a href="/" class="text-xl font-bold tracking-tight transition-colors hover:text-primary">
-			Pdnode CP Website
+			Pdnode CP Website <div class="badge badge-soft">v0.2.13</div>
 		</a>
 	</div>
 	<div class="flex-none gap-4">
 		<a href="/about" class="btn text-base-content/80 btn-ghost btn-sm">About</a>
 
 		{#if user}
-			<a href="/cps" class="btn text-base-content/80 btn-ghost btn-sm">Explore</a>
+			<a href="/explore" class="btn text-base-content/80 btn-ghost btn-sm">Explore</a>
 			<div class="dropdown dropdown-end">
 				<button class="placeholder btn avatar btn-circle btn-ghost">
 					<div

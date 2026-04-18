@@ -47,8 +47,8 @@ func main() {
 		return se.Next()
 	})
 
-	app.OnRecordCreateRequest("characters").BindFunc(validateCPsOwnership)
-	app.OnRecordUpdateRequest("characters").BindFunc(validateCPsOwnership)
+	app.OnRecordCreateRequest("cps").BindFunc(validateCharactersOwnership)
+	app.OnRecordUpdateRequest("cps").BindFunc(validateCharactersOwnership)
 
 	app.OnRecordCreateRequest().BindFunc(validateIdImmutable)
 	app.OnRecordUpdateRequest().BindFunc(validateIdImmutable)
@@ -75,30 +75,38 @@ func validateIdImmutable(e *core.RecordRequestEvent) error {
 	return e.Next()
 }
 
-// 通用校验逻辑
-func validateCPsOwnership(e *core.RecordRequestEvent) error {
+// 校验 CP 中的Characters是否属于当前操作者
+func validateCharactersOwnership(e *core.RecordRequestEvent) error {
+
+	if e.Auth == nil {
+		return apis.NewUnauthorizedError("Unauthorized", nil)
+	}
+
 	// Superuser 绕过
 	if e.Auth != nil && e.Auth.IsSuperuser() {
 		return e.Next()
 	}
 
-	cpIds := e.Record.GetStringSlice("cps")
-	if len(cpIds) == 0 {
+	// 获取当前记录中关联的角色 IDs (假设字段名是 "members")
+	characterIds := e.Record.GetStringSlice("characters")
+	if len(characterIds) == 0 {
 		return e.Next()
 	}
 
-	vals := make([]any, len(cpIds))
-	for i, v := range cpIds {
+	// 将 slice 转为 interface slice 用于 dbx 查询
+	vals := make([]any, len(characterIds))
+	for i, v := range characterIds {
 		vals[i] = v
 	}
 
+	// 查询这些角色中，是否存在不属于当前用户的记录
 	var count int
 	err := e.App.DB().
 		Select("count(*)").
-		From("cps").
+		From("characters").
 		Where(dbx.And(
 			dbx.In("id", vals...),
-			dbx.Not(dbx.HashExp{"owner": e.Auth.Id}),
+			dbx.Not(dbx.HashExp{"owner": e.Auth.Id}), // 找出 owner 不是当前用户的
 		)).
 		Row(&count)
 
@@ -106,9 +114,10 @@ func validateCPsOwnership(e *core.RecordRequestEvent) error {
 		return apis.NewInternalServerError("Database query failed", err)
 	}
 
+	// 如果发现有角色不属于该用户，拦截请求
 	if count > 0 {
 		return apis.NewBadRequestError("Illegal association", map[string]validation.Error{
-			"cps": validation.NewError("invalid_owner", "Includes a partner that doesn't belong to you."),
+			"characters": validation.NewError("invalid_character_owner", "One or more selected characters do not belong to you."),
 		})
 	}
 
