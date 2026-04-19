@@ -53,7 +53,7 @@
 	{#if isLoading}{:else}
 		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 			{#each items as item}
-				<div class="card border border-base-200 bg-base-100 shadow-xl">
+				<a class="card border border-base-200 bg-base-100 shadow-xl cursor-pointer transition-all active:scale-95 hover:bg-base-300" href={`/${mode}/${item.id}`}>
 					<figure class="h-48 bg-base-300">
 						{#if item.images[0]}
 							<img
@@ -82,7 +82,7 @@
 						{/if}
 						<p class="line-clamp-2 text-sm opacity-70">{item.description}</p>
 					</div>
-				</div>
+				</a>
 			{/each}
 		</div>
 	{/if}
