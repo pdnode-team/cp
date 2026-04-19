@@ -2,6 +2,7 @@
 	import pb from '$lib/pocketbase';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 
 	// 1. 从 URL 获取 ID
 	const cpId = $derived(page.params.id);
@@ -59,7 +60,7 @@
 
 		<div class="flex flex-col items-center justify-center gap-8 md:flex-row">
 			{#each cp.expand?.characters || [] as char, i}
-				<div class="card w-full max-w-sm border border-base-200 bg-base-100 shadow-xl">
+				<button class="card w-full max-w-sm border border-base-200 bg-base-100 shadow-xl cursor-pointer transition-all active:scale-95 hover:bg-base-300" onclick={() => goto(`/characters/${char.id}`)}>
 					<figure class="h-64">
 						{#if char.images?.[0]}
 							<img
@@ -75,7 +76,7 @@
 						<h3 class="card-title text-2xl">{char.name}</h3>
 						<a class="text-sm opacity-70 link" href="{char.origin}" target="_blank" rel="noopener noreferrer">{char.origin}</a>
 					</div>
-				</div>
+				</button>
 			{/each}
 		</div>
 
