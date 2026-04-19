@@ -73,7 +73,7 @@
 					</figure>
 					<div class="card-body">
 						<h3 class="card-title text-2xl">{char.name}</h3>
-						<p class="text-sm opacity-70">{char.origin}</p>
+						<a class="text-sm opacity-70 link" href="{char.origin}" target="_blank" rel="noopener noreferrer">{char.origin}</a>
 					</div>
 				</div>
 			{/each}
