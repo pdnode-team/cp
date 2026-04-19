@@ -13,7 +13,7 @@
 	onMount(async () => {
 		try {
 			// 展开 characters 和 owner
-			cp = await pb.collection('cps').getOne(cpId, {
+			cp = await pb.collection('cps').getOne(cpId!, {
 				expand: 'characters,owner'
 			});
 		} catch (err: any) {
