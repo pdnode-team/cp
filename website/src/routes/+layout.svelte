@@ -1,7 +1,6 @@
 <script lang="ts">
 	import './layout.css';
 
-	export const ssr = false;
 	let { children } = $props();
 	let user: any = $state();
 
