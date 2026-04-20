@@ -64,7 +64,7 @@ func main() {
 
 // 权限校验中间件
 func restrictToSuperuserOrAuth(e *core.RecordRequestEvent) error {
-	if e.Auth.IsSuperuser() || e.Record.Collection().IsAuth() {
+	if e.Auth != nil && e.Auth.IsSuperuser() || e.Record.Collection().IsAuth() {
 		return e.Next()
 	}
 	return apis.NewForbiddenError("Unauthorized", nil)
