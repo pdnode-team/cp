@@ -163,7 +163,10 @@
 	// Get Char(s)
 	let characters = $state<any[]>([]);
 	const reloadCharacters = async () => {
-		characters = await pb.collection('characters').getFullList();
+		characters = await pb.collection('characters').getFullList({
+			filter: `owner = "${pb.authStore.record!.id}"`,
+			sort: '-created'
+		});
 	};
 	onMount(() => {
 		if (!pb.authStore.isValid) {
