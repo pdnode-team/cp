@@ -35,7 +35,7 @@
 		charErrorText = '';
 
 		if (charPictures && charPictures.length !== 0) {
-            formData.delete('images')
+			formData.delete('images');
 			for (let file of charPictures) {
 				formData.append('images', file);
 			}
@@ -44,7 +44,7 @@
 		formData.append('name', charName);
 		formData.append('description', charDescription);
 		formData.append('origin', charOrigin);
-        formData.delete('tag_names')
+		formData.delete('tag_names');
 		charTags.forEach((tag) => {
 			formData.append('tag_names', tag);
 		});
@@ -53,7 +53,7 @@
 
 		try {
 			await pb.collection('characters').update(page.params.id!, formData);
-            goto(`/characters/${page.params.id}`)
+			goto(`/characters/${page.params.id}`);
 		} catch (err: any) {
 			charErrorText = err.data.data?.message ?? 'Update failed. Please try again.';
 
@@ -98,105 +98,111 @@
 			charTags = rawTags ? [rawTags] : [];
 		}
 
-        charName = record.name
-		charDescription = record.description
-        charOrigin = record.origin
+		charName = record.name;
+		charDescription = record.description;
+		charOrigin = record.origin;
 	});
 </script>
 
 <div class="flex min-h-[70vh] flex-col items-center justify-center px-4 py-12">
 	<div class="card w-full max-w-md bg-base-100">
-		<div class="card-body flex flex-col gap-4 p-8">
-			<h2 class="mb-2 text-center text-3xl font-bold">Update {record?.name}</h2>
-			<p class="mb-6 text-center text-base-content/60">
-				All fields must be filled out unless otherwise specified.
-			</p>
-			<div class="flex flex-col gap-4">
-				<label class="form-control w-full">
-					<div class="label"><span class="label-text font-medium">Name</span></div>
-					<input
-						type="text"
-						name="characterName"
-						placeholder="XXXX & YYYY"
-						class="input-bordered input w-full"
-						autocomplete="name"
-						bind:value={charName}
-						required
-					/>
-				</label>
-
-				<label class="form-control w-full">
-					<div class="label">
-						<span class="label-text font-medium">Description</span>
-					</div>
-					<textarea
-						name="characterpDescription"
-						placeholder="description"
-						class="textarea w-full"
-						maxlength="1000"
-						bind:value={charDescription}
-						required
-					></textarea>
-				</label>
-
-				<label class="form-control w-full">
-					<div class="label"><span class="label-text font-medium">Origin</span></div>
-					<input
-						type="text"
-						name="characterOrigin"
-						placeholder="https://pdnode.com"
-						class="input-bordered input w-full"
-						autocomplete="name"
-						bind:value={charOrigin}
-					/>
-				</label>
-
-				<div class="form-control w-full max-w-xs">
-					<label class="label" for="file-upload">
-						<span class="label-text">Pictures (Option)</span>
+		{#if record}
+			<div class="card-body flex flex-col gap-4 p-8">
+				<h2 class="mb-2 text-center text-3xl font-bold">Update {record?.name}</h2>
+				<p class="mb-6 text-center text-base-content/60">
+					All fields must be filled out unless otherwise specified.
+				</p>
+				<div class="flex flex-col gap-4">
+					<label class="form-control w-full">
+						<div class="label"><span class="label-text font-medium">Name</span></div>
+						<input
+							type="text"
+							name="characterName"
+							placeholder="XXXX & YYYY"
+							class="input-bordered input w-full"
+							autocomplete="name"
+							bind:value={charName}
+							required
+						/>
 					</label>
 
-					<input
-						type="file"
-						id="file-upload"
-						class="file-input-bordered file-input w-full file-input-primary"
-						accept="image/*"
-						multiple
-						bind:files={charPictures}
-					/>
-				</div>
+					<label class="form-control w-full">
+						<div class="label">
+							<span class="label-text font-medium">Description</span>
+						</div>
+						<textarea
+							name="characterpDescription"
+							placeholder="description"
+							class="textarea w-full"
+							maxlength="1000"
+							bind:value={charDescription}
+							required
+						></textarea>
+					</label>
 
-				<div class="flex w-full max-w-sm flex-col">
-					<div class="label">
-						<span class="label-text font-medium">Tags (Option)</span>
+					<label class="form-control w-full">
+						<div class="label"><span class="label-text font-medium">Origin</span></div>
+						<input
+							type="text"
+							name="characterOrigin"
+							placeholder="https://pdnode.com"
+							class="input-bordered input w-full"
+							autocomplete="name"
+							bind:value={charOrigin}
+						/>
+					</label>
+
+					<div class="form-control w-full max-w-xs">
+						<label class="label" for="file-upload">
+							<span class="label-text">Pictures (Option)</span>
+						</label>
+
+						<input
+							type="file"
+							id="file-upload"
+							class="file-input-bordered file-input w-full file-input-primary"
+							accept="image/*"
+							multiple
+							bind:files={charPictures}
+						/>
 					</div>
 
-					<input
-						type="text"
-						placeholder="Enter the tags and press Enter...."
-						class="input-bordered input w-full"
-						bind:value={charTagsCurrentInput}
-						onkeydown={newCharAddTag}
-					/>
+					<div class="flex w-full max-w-sm flex-col">
+						<div class="label">
+							<span class="label-text font-medium">Tags (Option)</span>
+						</div>
 
-					<div class="mt-2 flex flex-wrap gap-2">
-						{#each charTags as tag, i}
-							<div class="badge gap-2 badge-soft p-3 badge-primary">
-								{tag}
-								<button type="button" onclick={() => charTags.splice(i, 1)} class="text-xs"
-									>✕</button
-								>
-							</div>
-						{/each}
+						<input
+							type="text"
+							placeholder="Enter the tags and press Enter...."
+							class="input-bordered input w-full"
+							bind:value={charTagsCurrentInput}
+							onkeydown={newCharAddTag}
+						/>
+
+						<div class="mt-2 flex flex-wrap gap-2">
+							{#each charTags as tag, i}
+								<div class="badge gap-2 badge-soft p-3 badge-primary">
+									{tag}
+									<button type="button" onclick={() => charTags.splice(i, 1)} class="text-xs"
+										>✕</button
+									>
+								</div>
+							{/each}
+						</div>
 					</div>
+
+					<p class="text-red-500">{charErrorText}</p>
+
+					<button type="submit" class="btn w-full text-lg btn-primary" onclick={updateCharacter}
+						>Update</button
+					>
 				</div>
-
-				<p class="text-red-500">{charErrorText}</p>
-
-				<button type="submit" class="btn w-full text-lg btn-primary" onclick={updateCharacter}
-					>Update</button
-				>
 			</div>
-		</div>
+		{:else}
+			<div role="alert" class="alert alert-soft alert-error">
+				<span>The record could not be found.</span>
+			</div>
+		{/if}
 	</div>
 </div>
