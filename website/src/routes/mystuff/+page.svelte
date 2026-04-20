@@ -68,7 +68,7 @@
             <div class="card-body items-center">
                 <h2 class="card-title text-2xl opacity-40">You haven't created any {mode === 'cps' ? 'CP' : 'characters'} yet.</h2>
                 <div class="card-actions mt-4">
-                    <a href="/create" class="btn btn-primary">Create Your First {mode === 'cps' ? 'CP' : 'characters'}</a>
+                    <a href="/create" class="btn btn-primary">Create Your First {mode === 'cps' ? 'CP' : 'character'}</a>
                 </div>
             </div>
         </div>
