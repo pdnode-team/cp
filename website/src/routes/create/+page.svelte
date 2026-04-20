@@ -13,11 +13,16 @@
 	let character1 = $state('');
 	let character2 = $state('');
 
+	let isSubmitting = $state(false);
+
 	let tags = $state<string[]>([]);
 
 	let isNewCharDialogOpen = $state(false);
 
-	const createCP = async () => {
+	const createCP = async (e: Event) => {
+		e.preventDefault();
+		
+
 		errorText = '';
 
 		if (
@@ -41,19 +46,21 @@
 			errorText = 'Character #1 and Character #2 cannot be the same';
 			return;
 		}
+
+		if (isSubmitting) return;
+		isSubmitting = true;
+
 		try {
-			await pb
-				.collection('cps')
-				.create(
-					toFormData({
-						name,
-						description,
-						owner: pb.authStore.record!.id,
-						images: pictures,
-						tag_names: tags,
-						characters: [character1, character2]
-					})
-				);
+			await pb.collection('cps').create(
+				toFormData({
+					name,
+					description,
+					owner: pb.authStore.record!.id,
+					images: pictures,
+					tag_names: tags,
+					characters: [character1, character2]
+				})
+			);
 			window.location.pathname = '/explore';
 		} catch (err: any) {
 			errorText = err.data.data?.message ?? 'Create failed. Please try again.';
@@ -66,6 +73,7 @@
 				return;
 			}
 		}
+		isSubmitting = false;
 	};
 
 	const handleChangeSelect = (e: Event) => {
@@ -88,7 +96,7 @@
 
 	onMount(() => {
 		if (!pb.authStore.isValid) {
-			goto('/login')
+			goto('/login');
 			return;
 		}
 		reloadCharacters();
@@ -104,7 +112,7 @@
 			<p class="mb-6 text-center text-base-content/60">
 				All fields must be filled out unless otherwise specified.
 			</p>
-			<div class="flex flex-col gap-4">
+			<form class="flex flex-col gap-4" onsubmit={createCP}>
 				<label class="form-control w-full">
 					<div class="label"><span class="label-text font-medium">Your CP Name</span></div>
 					<input
@@ -189,11 +197,9 @@
 				<p class="text-red-500">{errorText}</p>
 
 				<div class="form-control mt-6">
-					<button onclick={createCP} type="submit" class="btn w-full text-lg btn-primary"
-						>Create</button
-					>
+					<button type="submit" class="btn w-full text-lg btn-primary">Create</button>
 				</div>
-			</div>
+			</form>
 		</div>
 	</div>
 </div>

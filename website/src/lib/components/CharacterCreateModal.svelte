@@ -1,61 +1,67 @@
 <script lang="ts">
-	import pb from '$lib/pocketbase';
-	import TagInput from './ui/TagInput.svelte';
-	import { toFormData } from '$lib/utils/api';
+	import pb from '$lib/pocketbase'
+	import TagInput from './ui/TagInput.svelte'
+	import { toFormData } from '$lib/utils/api'
 
-	let { open = $bindable(false), afterCreate } = $props();
-	let dialogRef = $state() as HTMLDialogElement;
+	let { open = $bindable(false), afterCreate } = $props()
+	let dialogRef = $state() as HTMLDialogElement
 
 	$effect(() => {
 		if (open) {
-			dialogRef?.showModal();
+			dialogRef?.showModal()
 		} else {
-			dialogRef?.close();
+			dialogRef?.close()
 		}
-	});
+	})
 
-	let tags = $state<string[]>([]);
-	let errorText = $state('');
+	let tags = $state<string[]>([])
+	let errorText = $state('')
 
-	let name = $state('');
-	let description = $state('');
-	let origin = $state('');
-	let pictures: FileList | undefined = $state();
+	let name = $state('')
+	let description = $state('')
+	let origin = $state('')
+	let pictures: FileList | undefined = $state()
+
+	let isSubmitting = $state(false)
 
 	const createCharacter = async () => {
-		errorText = '';
+		if (isSubmitting) return
+
+		errorText = ''
 
 		if (!name.trim() || !description.trim()) {
-			errorText = 'All fields must be filled out';
-			return;
+			errorText = 'All fields must be filled out'
+			return
 		}
 
 		try {
+			isSubmitting = true
 			await pb
 				.collection('characters')
-				.create(toFormData({ name, description, origin, tag_names: tags, images: pictures, owner: pb.authStore.record!.id }));
-			name = '';
-			description = '';
-			origin = '';
-			pictures = undefined;
-			tags = [];
-			errorText = '';
-			open = false;
+				.create(toFormData({ name, description, origin, tag_names: tags, images: pictures, owner: pb.authStore.record!.id }))
+			name = ''
+			description = ''
+			origin = ''
+			pictures = undefined
+			tags = []
+			errorText = ''
+			open = false
 			if (afterCreate) {
-				afterCreate();
+				afterCreate()
 			}
 		} catch (err: any) {
-			errorText = err.data.data?.message ?? 'Create failed. Please try again.';
+			isSubmitting = false
+			errorText = err.data.data?.message ?? 'Create failed. Please try again.'
 
-			const firstKey = Object.keys(err.data.data)[0];
+			const firstKey = Object.keys(err.data.data)[0]
 			if (firstKey) {
-				const friendlyMessage = `${firstKey}: ${err.data.data[firstKey].message}`;
-				console.error(friendlyMessage);
-				errorText = friendlyMessage;
-				return;
+				const friendlyMessage = `${firstKey}: ${err.data.data[firstKey].message}`
+				console.error(friendlyMessage)
+				errorText = friendlyMessage
+				return
 			}
 		}
-	};
+	}
 </script>
 
 <dialog bind:this={dialogRef} onclose={() => (open = false)} class="modal">
