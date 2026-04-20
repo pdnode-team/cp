@@ -148,7 +148,7 @@
 			newCharErrorText = '';
 			reloadCharacters();
 		} catch (err: any) {
-			errorText = err.data.data?.message ?? 'Create failed. Please try again.';
+			newCharErrorText = err.data.data?.message ?? 'Create failed. Please try again.';
 
 			const firstKey = Object.keys(err.data.data)[0];
 			if (firstKey) {
