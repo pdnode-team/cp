@@ -3,43 +3,34 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { toFormData } from '$lib/utils/api';
+	import TagInput from '$lib/components/ui/TagInput.svelte';
 
 	let errorText = $state('');
 	let tags = $state<string[]>([]);
-	let currentInput = $state('');
-	let cpName = $state('');
-	let cpDescription = $state('');
-	let cpPictures: FileList | undefined = $state();
-	let cpCharacter1 = $state('');
-	let cpCharacter2 = $state('');
+	let name = $state('');
+	let description = $state('');
+	let pictures: FileList | undefined = $state();
+	let character1 = $state('');
+	let character2 = $state('');
 
 	const updateCP = async () => {
 		errorText = '';
 
-		if (cpCharacter1 === cpCharacter2) {
+		if (character1 === character2) {
 			errorText = 'Character #1 and Character #2 cannot be the same';
 			return;
 		}
 
-		const formData = new FormData();
-		formData.append('name', cpName);
-		formData.append('description', cpDescription);
-		formData.append('owner', record.owner);
-		if (cpPictures && cpPictures.length > 0) {
-			for (let file of cpPictures) {
-				formData.append('images', file);
-			}
-		}
-
-		tags.forEach((tag) => {
-			formData.append('tag_names', tag);
-		});
-		formData.delete('characters');
-		formData.append('characters', cpCharacter1);
-		formData.append('characters', cpCharacter2);
-
 		try {
-			await pb.collection('cps').update(page.params.id!, formData);
+			await pb.collection('cps').update(page.params.id!, toFormData({
+                name,
+                description,
+                owner: record.owner,
+                pictures,
+                tag_names: tags,
+                characters: [character1, character2]
+            }));
 			goto(`/cps/${page.params.id}`);
 		} catch (err: any) {
 			errorText = err.data.data?.message ?? 'Update failed. Please try again.';
@@ -55,21 +46,6 @@
 		}
 	};
 
-	function addTag(e: KeyboardEvent) {
-		if (e.key === 'Enter' && currentInput.trim()) {
-			e.preventDefault();
-			if (tags.length >= 10) {
-				errorText = 'Maximum of ten tags';
-				return;
-			}
-			// 如果标签不存在则添加
-			if (!tags.includes(currentInput.trim())) {
-				tags.push(currentInput.trim());
-			}
-			currentInput = ''; // 清空输入
-		}
-	}
-
 	// Get Char(s)
 	let characters = $state<any[]>([]);
 	let record = $state<any>();
@@ -79,6 +55,7 @@
 			sort: '-created'
 		});
 	};
+
 	onMount(async () => {
 		if (!pb.authStore.isValid) {
 			window.location.pathname = '/login';
@@ -112,10 +89,10 @@
 			tags = rawTags ? [rawTags] : [];
 		}
 
-		cpName = record.name;
-		cpDescription = record.description;
-		cpCharacter1 = record.characters[0];
-		cpCharacter2 = record.characters[1];
+		name = record.name;
+		description = record.description;
+		character1 = record.characters[0];
+		character2 = record.characters[1];
 	});
 </script>
 
@@ -136,7 +113,7 @@
 							placeholder="XXXX & YYYY"
 							class="input-bordered input w-full"
 							autocomplete="name"
-							bind:value={cpName}
+							bind:value={name}
 							
 						/>
 					</label>
@@ -148,7 +125,7 @@
 							placeholder="description"
 							class="textarea w-full"
 							maxlength="1000"
-							bind:value={cpDescription}
+							bind:value={description}
 						></textarea>
 					</label>
 
@@ -162,32 +139,13 @@
 							id="file-upload"
 							class="file-input-bordered file-input w-full file-input-primary"
 							accept="image/*"
-							bind:files={cpPictures}
+							bind:files={pictures}
 							multiple
 							
 						/>
 					</div>
 
-					<div class="flex w-full max-w-sm flex-col">
-						<div class="label"><span class="label-text font-medium">Tags</span></div>
-
-						<input
-							type="text"
-							placeholder="Enter the tags and press Enter...."
-							class="input-bordered input w-full"
-							bind:value={currentInput}
-							onkeydown={addTag}
-						/>
-
-						<div class="mt-2 flex flex-wrap gap-2">
-							{#each tags as tag, i}
-								<div class="badge gap-2 badge-soft p-3 badge-primary">
-									{tag}
-									<button type="button" onclick={() => tags.splice(i, 1)} class="text-xs">✕</button>
-								</div>
-							{/each}
-						</div>
-					</div>
+					<TagInput title="Your CP Tags" bind:tags />
 
 					<label class="form-control w-full">
 						<div class="label"><span class="label-text font-medium">Character #1</span></div>
@@ -196,7 +154,7 @@
 							placeholder="Select a character"
 							class="select-bordered select w-full"
 							autocomplete="name"
-							bind:value={cpCharacter1}
+							bind:value={character1}
 						>
 							<option value="" selected disabled>Select a character</option>
 							{#each characters as character}
@@ -212,7 +170,7 @@
 							placeholder="Select a character"
 							class="select-bordered select w-full"
 							autocomplete="name"
-							bind:value={cpCharacter2}
+							bind:value={character2}
 						>
 							<option value="" selected disabled>Select a character</option>
 							{#each characters as character}
