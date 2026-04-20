@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import pb from '$lib/pocketbase';
 
 	let email = $state('');
@@ -27,7 +28,7 @@
 				passwordConfirm
 			});
 
-			window.location.pathname = "/login"
+			goto('/login')
 
 		} catch (err: any) {
 			const errorData = err.data?.data || {};

@@ -4,6 +4,7 @@
 	import CharacterCreateModal from '$lib/components/CharacterCreateModal.svelte';
 	import TagInput from '$lib/components/ui/TagInput.svelte';
 	import { toFormData } from '$lib/utils/api';
+	import { goto } from '$app/navigation';
 
 	let errorText = $state('');
 	let name = $state('');
@@ -83,7 +84,7 @@
 
 	onMount(() => {
 		if (!pb.authStore.isValid) {
-			window.location.pathname = '/login';
+			goto('/login')
 			return;
 		}
 		reloadCharacters();

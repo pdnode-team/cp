@@ -9,7 +9,7 @@
 		if (e.key === 'Enter' && currentInput.trim()) {
 			e.preventDefault();
 			if (tags.length >= max) {
-				errorText = 'Maximum of ten tags';
+				errorText = `Maximum of ${max} tags`;
 				return;
 			}
 			// 如果标签不存在则添加

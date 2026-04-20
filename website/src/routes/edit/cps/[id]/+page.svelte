@@ -58,7 +58,7 @@
 
 	onMount(async () => {
 		if (!pb.authStore.isValid) {
-			window.location.pathname = '/login';
+			goto('/login')
 			return;
 		}
 		reloadCharacters();
