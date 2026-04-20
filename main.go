@@ -52,9 +52,9 @@ func main() {
 
 	app.OnRecordCreateRequest().BindFunc(validateIdImmutable)
 
-	app.OnRecordCreateRequest().BindFunc(restrictToSuperuserOrAuth)
-	app.OnRecordUpdateRequest().BindFunc(restrictToSuperuserOrAuth)
-	app.OnRecordDeleteRequest().BindFunc(restrictToSuperuserOrAuth)
+	app.OnRecordCreateRequest().BindFunc(restrictToAuth)
+	app.OnRecordUpdateRequest().BindFunc(restrictToAuth)
+	app.OnRecordDeleteRequest().BindFunc(restrictToAuth)
 
 	if err := app.Start(); err != nil {
 		log.Fatal(err)
@@ -62,8 +62,8 @@ func main() {
 }
 
 // 权限校验中间件
-func restrictToSuperuserOrAuth(e *core.RecordRequestEvent) error {
-	if e.Auth != nil && e.Auth.IsSuperuser() || e.Record.Collection().IsAuth() {
+func restrictToAuth(e *core.RecordRequestEvent) error {
+	if e.Auth != nil || e.Record.Collection().IsAuth() {
 		return e.Next()
 	}
 	return apis.NewForbiddenError("Unauthorized", nil)
