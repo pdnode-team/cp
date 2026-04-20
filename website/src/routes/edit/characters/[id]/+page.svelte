@@ -3,9 +3,8 @@
 	import { page } from '$app/state';
 	import pb from '$lib/pocketbase';
 	import { onMount } from 'svelte';
-    import TagInput from '$lib/components/ui/TagInput.svelte';
+	import TagInput from '$lib/components/ui/TagInput.svelte';
 	import { toFormData } from '$lib/utils/api';
-    
 
 	let tags = $state<string[]>([]);
 	let errorText = $state('');
@@ -17,20 +16,32 @@
 	let origin = $state('');
 	let pictures: FileList | undefined = $state();
 
-	const updateCharacter = async () => {
+	let isSubmitting = $state(false);
+
+	const updateCharacter = async (e: Event) => {
+		e.preventDefault();
+
+		if (isSubmitting) return;
+		isSubmitting = true;
+
 		errorText = '';
 
 		try {
-			await pb.collection('characters').update(page.params.id!, toFormData({
-                name,
-                description,
-                origin,
-                tag_names: tags,
-                images: pictures,
-                owner: record.owner
-            }));
+			await pb.collection('characters').update(
+				page.params.id!,
+				toFormData({
+					name,
+					description,
+					origin,
+					tag_names: tags,
+					images: pictures,
+					owner: record.owner
+				})
+			);
 			goto(`/characters/${page.params.id}`);
 		} catch (err: any) {
+			isSubmitting = false;
+
 			errorText = err.data.data?.message ?? 'Update failed. Please try again.';
 
 			const firstKey = Object.keys(err.data.data)[0];
@@ -45,7 +56,7 @@
 
 	onMount(async () => {
 		if (!pb.authStore.isValid) {
-			goto('/login')
+			goto('/login');
 			return;
 		}
 		record = await pb.collection('characters').getOne(page.params.id!);
@@ -88,7 +99,7 @@
 				<p class="mb-6 text-center text-base-content/60">
 					All fields must be filled out unless otherwise specified.
 				</p>
-				<div class="flex flex-col gap-4">
+				<form class="flex flex-col gap-4" onsubmit={updateCharacter}>
 					<label class="form-control w-full">
 						<div class="label"><span class="label-text font-medium">Name</span></div>
 						<input
@@ -143,14 +154,12 @@
 						/>
 					</div>
 
-			        <TagInput title="Your Character Tags (Option)" bind:tags />
+					<TagInput title="Your Character Tags (Option)" bind:tags />
 
 					<p class="text-red-500">{errorText}</p>
 
-					<button type="submit" class="btn w-full text-lg btn-primary" onclick={updateCharacter}
-						>Update</button
-					>
-				</div>
+					<button type="submit" class="btn w-full text-lg btn-primary">Update</button>
+				</form>
 			</div>
 		{:else}
 			<div role="alert" class="alert alert-soft alert-error">

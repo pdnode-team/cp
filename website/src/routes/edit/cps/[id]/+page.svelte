@@ -14,7 +14,12 @@
 	let character1 = $state('');
 	let character2 = $state('');
 
-	const updateCP = async () => {
+	let isSubmitting = $state(false);
+
+	const updateCP = async (e: Event) => {
+		e.preventDefault();
+		
+
 		errorText = '';
 
 		if (character1 === character2) {
@@ -22,15 +27,21 @@
 			return;
 		}
 
+		if (isSubmitting) return;
+		isSubmitting = true;
+
 		try {
-			await pb.collection('cps').update(page.params.id!, toFormData({
-                name,
-                description,
-                owner: record.owner,
-                images: pictures,
-                tag_names: tags,
-                characters: [character1, character2]
-            }));
+			await pb.collection('cps').update(
+				page.params.id!,
+				toFormData({
+					name,
+					description,
+					owner: record.owner,
+					images: pictures,
+					tag_names: tags,
+					characters: [character1, character2]
+				})
+			);
 			goto(`/cps/${page.params.id}`);
 		} catch (err: any) {
 			errorText = err.data.data?.message ?? 'Update failed. Please try again.';
@@ -43,7 +54,11 @@
 				errorText = friendlyMessage;
 				return;
 			}
+		} finally {
+			isSubmitting = false;
 		}
+
+		
 	};
 
 	// Get Char(s)
@@ -58,7 +73,7 @@
 
 	onMount(async () => {
 		if (!pb.authStore.isValid) {
-			goto('/login')
+			goto('/login');
 			return;
 		}
 		reloadCharacters();
@@ -104,7 +119,7 @@
 				<p class="mb-6 text-center text-base-content/60">
 					All fields must be filled out unless otherwise specified.
 				</p>
-				<div class="flex flex-col gap-4">
+				<form class="flex flex-col gap-4" onsubmit={updateCP}>
 					<label class="form-control w-full">
 						<div class="label"><span class="label-text font-medium">Name</span></div>
 						<input
@@ -114,7 +129,6 @@
 							class="input-bordered input w-full"
 							autocomplete="name"
 							bind:value={name}
-							
 						/>
 					</label>
 
@@ -141,7 +155,6 @@
 							accept="image/*"
 							bind:files={pictures}
 							multiple
-							
 						/>
 					</div>
 
@@ -182,11 +195,9 @@
 					<p class="text-red-500">{errorText}</p>
 
 					<div class="form-control mt-6">
-						<button onclick={updateCP} type="submit" class="btn w-full text-lg btn-primary"
-							>Update</button
-						>
+						<button type="submit" class="btn w-full text-lg btn-primary">Update</button>
 					</div>
-				</div>
+				</form>
 			</div>
 		{:else}
 			<div role="alert" class="alert alert-soft alert-error">
