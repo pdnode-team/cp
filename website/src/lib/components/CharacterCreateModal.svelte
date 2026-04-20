@@ -25,7 +25,7 @@
 	const createCharacter = async () => {
 		errorText = '';
 
-		if (!name.trim() || !description.trim() || !origin.trim()) {
+		if (!name.trim() || !description.trim()) {
 			errorText = 'All fields must be filled out';
 			return;
 		}

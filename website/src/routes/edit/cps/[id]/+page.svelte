@@ -27,7 +27,7 @@
                 name,
                 description,
                 owner: record.owner,
-                pictures,
+                images: pictures,
                 tag_names: tags,
                 characters: [character1, character2]
             }));
