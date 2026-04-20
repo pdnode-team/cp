@@ -166,8 +166,8 @@
 		characters = await pb.collection('characters').getFullList();
 	};
 	onMount(() => {
-		if (pb.authStore.isValid) {
-			window.location.pathname = '/';
+		if (!pb.authStore.isValid) {
+			window.location.pathname = '/login';
 		}
 		reloadCharacters();
 	});
