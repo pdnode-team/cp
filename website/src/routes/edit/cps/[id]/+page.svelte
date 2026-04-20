@@ -137,7 +137,7 @@
 							class="input-bordered input w-full"
 							autocomplete="name"
 							bind:value={cpName}
-							required
+							
 						/>
 					</label>
 
@@ -149,7 +149,6 @@
 							class="textarea w-full"
 							maxlength="1000"
 							bind:value={cpDescription}
-							required
 						></textarea>
 					</label>
 
@@ -165,7 +164,7 @@
 							accept="image/*"
 							bind:files={cpPictures}
 							multiple
-							required
+							
 						/>
 					</div>
 
@@ -198,7 +197,6 @@
 							class="select-bordered select w-full"
 							autocomplete="name"
 							bind:value={cpCharacter1}
-							required
 						>
 							<option value="" selected disabled>Select a character</option>
 							{#each characters as character}
@@ -215,7 +213,6 @@
 							class="select-bordered select w-full"
 							autocomplete="name"
 							bind:value={cpCharacter2}
-							required
 						>
 							<option value="" selected disabled>Select a character</option>
 							{#each characters as character}
