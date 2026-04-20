@@ -1,6 +1,5 @@
 <script lang="ts">
     import pb from '$lib/pocketbase';
-    import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
 
     type ViewMode = 'cps' | 'characters';
