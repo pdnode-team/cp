@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log/slog"
 	"os"
 	"strconv"
 	"strings"
@@ -14,6 +15,8 @@ import (
 func setStringIfPresent(key string, dst *string) {
 	if v, ok := os.LookupEnv(key); ok {
 		*dst = v
+	} else {
+		slog.Warn("missing_env", "env", key)
 	}
 }
 
@@ -21,7 +24,11 @@ func setBoolIfPresent(key string, dst *bool) {
 	if v, ok := os.LookupEnv(key); ok {
 		if b, err := strconv.ParseBool(v); err == nil {
 			*dst = b
+		} else {
+			slog.Warn("invalid_bool", "env", key, "value", v)
 		}
+	} else {
+		slog.Warn("missing_env", "env", key)
 	}
 }
 
@@ -29,7 +36,11 @@ func setIntIfPresent(key string, dst *int) {
 	if v, ok := os.LookupEnv(key); ok {
 		if i, err := strconv.Atoi(v); err == nil {
 			*dst = i
+		} else {
+			slog.Warn("invalid_int", "env", key, "value", v)
 		}
+	} else {
+		slog.Warn("missing_env", "env", key)
 	}
 }
 
