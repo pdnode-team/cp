@@ -51,7 +51,6 @@ func main() {
 	app.OnRecordUpdateRequest("cps").BindFunc(validateCharactersOwnership)
 
 	app.OnRecordCreateRequest().BindFunc(validateIdImmutable)
-	app.OnRecordUpdateRequest().BindFunc(validateIdImmutable)
 
 	app.OnRecordCreateRequest().BindFunc(restrictToSuperuserOrAuth)
 	app.OnRecordUpdateRequest().BindFunc(restrictToSuperuserOrAuth)
