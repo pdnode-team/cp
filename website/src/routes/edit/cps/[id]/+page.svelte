@@ -24,7 +24,7 @@
 		const formData = new FormData();
 		formData.append('name', cpName);
 		formData.append('description', cpDescription);
-		formData.append('owner', pb.authStore.record!.id);
+		formData.append('owner', record.owner);
 		if (cpPictures && cpPictures.length > 0) {
 			for (let file of cpPictures) {
 				formData.append('images', file);

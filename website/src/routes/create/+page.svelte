@@ -148,7 +148,7 @@
 			newCharErrorText = '';
 			reloadCharacters();
 		} catch (err: any) {
-			errorText = err.data.data?.message ?? 'Create failed. Please try again.';
+			newCharErrorText = err.data.data?.message ?? 'Create failed. Please try again.';
 
 			const firstKey = Object.keys(err.data.data)[0];
 			if (firstKey) {
@@ -200,7 +200,7 @@
 					<span class="label-text font-medium">Your Character Description</span>
 				</div>
 				<textarea
-					name="characterpDescription"
+					name="characterDescription"
 					placeholder="description"
 					class="textarea w-full"
 					maxlength="1000"
