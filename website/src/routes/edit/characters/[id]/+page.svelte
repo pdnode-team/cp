@@ -129,7 +129,7 @@
 							<span class="label-text font-medium">Description</span>
 						</div>
 						<textarea
-							name="characterpDescription"
+							name="characterDescription"
 							placeholder="description"
 							class="textarea w-full"
 							maxlength="1000"
