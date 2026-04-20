@@ -35,16 +35,14 @@
 		charErrorText = '';
 
 		if (charPictures && charPictures.length !== 0) {
-			formData.delete('images');
 			for (let file of charPictures) {
 				formData.append('images', file);
 			}
 		}
 
-		formData.append('name', charName);
-		formData.append('description', charDescription);
-		formData.append('origin', charOrigin);
-		formData.delete('tag_names');
+		formData.append('name', charName)
+		formData.append('description', charDescription)
+		formData.append('origin', charOrigin)
 		charTags.forEach((tag) => {
 			formData.append('tag_names', tag);
 		});
