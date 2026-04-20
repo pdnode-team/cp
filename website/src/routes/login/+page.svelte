@@ -1,11 +1,18 @@
 <!-- 例如 Login.svelte -->
 <script lang="ts">
 	import pb from '$lib/pocketbase';
+	import { onMount } from 'svelte';
 
 	let errorText = $state('');
 
 	let email = $state('');
 	let password = $state('');
+
+	onMount(() => {
+		if (pb.authStore.isValid) {
+			window.location.pathname = '/';
+		}
+	});
 
 	const handleLogin = async (e: Event) => {
 		errorText = '';

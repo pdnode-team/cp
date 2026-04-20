@@ -8,7 +8,9 @@
 	import { onMount } from 'svelte';
 
 	onMount(() => {
-		user = pb.authStore.record;
+		if (pb.authStore.isValid) {
+			user = pb.authStore.record;
+		}
 	});
 </script>
 
