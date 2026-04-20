@@ -118,16 +118,16 @@
 
 <dialog bind:this={deleteModal} class="modal">
 	<div class="modal-box border border-red-200 bg-base-100">
-		<h3 class="text-content text-lg font-bold">Confirm Deletion</h3>
-		<p class="text-content py-4">
+		<h3 class="text-base-content text-lg font-bold">Confirm Deletion</h3>
+		<p class="text-base-content py-4">
 			Are you sure you want to delete this? This action cannot be undone.
 		</p>
 		{#if itemToDelete?.collectionName! == 'cps'}
-			<p class="text-content py-4">
+			<p class="text-base-content py-4">
 				CP cannot be restored after deletion; the character still exists.
 			</p>
 		{:else}
-			<p class="text-content py-4">
+			<p class="text-base-content py-4">
 				Once a character is deleted, it cannot be recovered, and the associated CP will also be
 				deleted.
 			</p>
