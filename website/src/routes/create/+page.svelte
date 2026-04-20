@@ -25,11 +25,15 @@
 			!description.trim() ||
 			!pictures ||
 			pictures.length < 1 ||
-			pictures.length > 3 ||
 			!character1.trim() ||
 			!character2.trim()
 		) {
 			errorText = 'All fields must be filled out';
+			return;
+		}
+
+		if (pictures.length > 5) {
+			errorText = 'You can only upload up to 5 images';
 			return;
 		}
 
