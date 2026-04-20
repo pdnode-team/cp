@@ -43,7 +43,7 @@ func main() {
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		Setup(se.App)
 
-		se.Router.POST("/{type}/{id}/toggle-like", func(e *core.RequestEvent) error {
+		se.Router.POST("/api/{type}/{id}/toggle-like", func(e *core.RequestEvent) error {
 			requestCollection := e.Request.PathValue("type")
 			id := e.Request.PathValue("id")
 
