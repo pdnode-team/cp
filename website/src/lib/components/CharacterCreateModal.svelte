@@ -50,7 +50,7 @@
 				afterCreate()
 			}
 		} catch (err: any) {
-			isSubmitting = false
+			
 			errorText = err.data.data?.message ?? 'Create failed. Please try again.'
 
 			const firstKey = Object.keys(err.data.data)[0]
@@ -60,6 +60,8 @@
 				errorText = friendlyMessage
 				return
 			}
+		} finally {
+			isSubmitting = false
 		}
 	}
 </script>

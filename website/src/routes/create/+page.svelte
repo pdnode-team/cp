@@ -72,8 +72,10 @@
 				errorText = friendlyMessage;
 				return;
 			}
+		} finally {
+			isSubmitting = false;
 		}
-		isSubmitting = false;
+		
 	};
 
 	const handleChangeSelect = (e: Event) => {

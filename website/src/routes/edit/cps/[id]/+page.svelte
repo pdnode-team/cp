@@ -54,9 +54,11 @@
 				errorText = friendlyMessage;
 				return;
 			}
+		} finally {
+			isSubmitting = false;
 		}
 
-		isSubmitting = false;
+		
 	};
 
 	// Get Char(s)
