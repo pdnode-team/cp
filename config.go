@@ -77,6 +77,7 @@ func Setup(app core.App) {
 	setStringIfPresent("SMTP_HOST", &settings.SMTP.Host)
 	setIntIfPresent("SMTP_PORT", &settings.SMTP.Port)
 	setBoolIfPresent("ENABLE_SMTP_TLS", &settings.SMTP.TLS)
+	setStringIfPresent("SMTP_USERNAME", &settings.SMTP.Username)
 	setStringIfPresent("SMTP_PASSWORD", &settings.SMTP.Password)
 	setStringIfPresent("SMTP_LOCALNAME", &settings.SMTP.LocalName)
 
