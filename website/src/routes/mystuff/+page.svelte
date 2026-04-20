@@ -66,9 +66,9 @@
     {:else if items.length === 0}
         <div class="card bg-base-200 py-20 text-center border-2 border-dashed border-base-300">
             <div class="card-body items-center">
-                <h2 class="card-title text-2xl opacity-40">You haven't created any {mode} yet.</h2>
+                <h2 class="card-title text-2xl opacity-40">You haven't created any {mode === 'cps' ? 'CP' : 'characters'} yet.</h2>
                 <div class="card-actions mt-4">
-                    <a href="/create" class="btn btn-primary">Create Your First {mode === 'cps' ? 'CP' : 'Char'}</a>
+                    <a href="/create" class="btn btn-primary">Create Your First {mode === 'cps' ? 'CP' : 'character'}</a>
                 </div>
             </div>
         </div>

@@ -103,7 +103,6 @@ func validateCharactersOwnership(e *core.RecordRequestEvent) error {
 	if len(characterIds) == 0 {
 		return e.Next()
 	}
-
 	// 将 slice 转为 interface slice 用于 dbx 查询
 	vals := make([]any, len(characterIds))
 	for i, v := range characterIds {
