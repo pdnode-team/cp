@@ -121,7 +121,7 @@
 						<input
 							type="text"
 							name="characterOrigin"
-							placeholder="https://pdnode.com"
+							placeholder="Pdnode CPs"
 							class="input-bordered input w-full"
 							autocomplete="name"
 							bind:value={origin}
