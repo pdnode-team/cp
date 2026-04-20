@@ -47,7 +47,7 @@
 			formData.append('tag_names', tag);
 		});
 
-		formData.append('owner', pb.authStore.record!.id);
+		formData.append('owner', record.owner);
 
 		try {
 			await pb.collection('characters').update(page.params.id!, formData);
