@@ -53,14 +53,6 @@ func main() {
 	app.OnRecordCreateRequest().BindFunc(validateIdImmutable)
 	app.OnRecordUpdateRequest().BindFunc(validateIdImmutable)
 
-	app.OnRecordCreateRequest().BindFunc(func(e *core.RecordRequestEvent) error {
-		if e.Auth.IsSuperuser() || e.Record.Collection().IsAuth() {
-			return e.Next()
-		}
-
-		return apis.NewForbiddenError("Unauthorized", nil)
-	})
-
 	app.OnRecordCreateRequest().BindFunc(restrictToSuperuserOrAuth)
 	app.OnRecordUpdateRequest().BindFunc(restrictToSuperuserOrAuth)
 	app.OnRecordDeleteRequest().BindFunc(restrictToSuperuserOrAuth)
