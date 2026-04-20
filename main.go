@@ -20,6 +20,8 @@ import (
 //go:embed all:pb_public
 var embeddedFiles embed.FS
 
+var Version = "untracked"
+
 func main() {
 	app := pocketbase.New()
 
@@ -27,6 +29,8 @@ func main() {
 	if err != nil {
 		app.Logger().Warn("Warning: .env file not found, using system environment variables", "err", err)
 	}
+
+	app.RootCmd.Version = Version
 
 	migratecmd.MustRegister(app, app.RootCmd, migratecmd.Config{
 		// enable auto creation of migration files when making collection changes in the Dashboard
