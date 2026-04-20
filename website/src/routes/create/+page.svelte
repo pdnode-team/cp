@@ -13,18 +13,25 @@
 	let cpCharacter1 = $state('');
 	let cpCharacter2 = $state('');
 
-
 	const createCP = async () => {
-		errorText = ""
+		errorText = '';
 
-		if (!cpName.trim() || !cpDescription.trim() || !cpPictures || (cpPictures.length < 1 || cpPictures.length > 3) || !cpCharacter1.trim() || !cpCharacter2.trim()) {
-			errorText = 'All fields must be filled out'
+		if (
+			!cpName.trim() ||
+			!cpDescription.trim() ||
+			!cpPictures ||
+			cpPictures.length < 1 ||
+			cpPictures.length > 3 ||
+			!cpCharacter1.trim() ||
+			!cpCharacter2.trim()
+		) {
+			errorText = 'All fields must be filled out';
 			return;
 		}
 
 		if (cpCharacter1 === cpCharacter2) {
-			errorText = 'Character #1 and Character #2 cannot be the same'
-			return
+			errorText = 'Character #1 and Character #2 cannot be the same';
+			return;
 		}
 
 		const formData = new FormData();
@@ -37,12 +44,12 @@
 		tags.forEach((tag) => {
 			formData.append('tag_names', tag);
 		});
-		formData.append('characters', cpCharacter1)
-		formData.append('characters', cpCharacter2)
+		formData.append('characters', cpCharacter1);
+		formData.append('characters', cpCharacter2);
 
 		try {
 			await pb.collection('cps').create(formData);
-			window.location.pathname = "/explore"
+			window.location.pathname = '/explore';
 		} catch (err: any) {
 			errorText = err.data.data?.message ?? 'Create failed. Please try again.';
 
@@ -54,8 +61,7 @@
 				return;
 			}
 		}
-
-	}
+	};
 
 	function addTag(e: KeyboardEvent) {
 		if (e.key === 'Enter' && currentInput.trim()) {
@@ -140,7 +146,7 @@
 			newCharTags = [];
 			newCharTagsCurrentInput = '';
 			newCharErrorText = '';
-			reloadCharacters()
+			reloadCharacters();
 		} catch (err: any) {
 			errorText = err.data.data?.message ?? 'Create failed. Please try again.';
 
@@ -157,10 +163,13 @@
 	// Get Char(s)
 	let characters = $state<any[]>([]);
 	const reloadCharacters = async () => {
-		characters = await pb.collection('characters').getFullList()
-	}
+		characters = await pb.collection('characters').getFullList();
+	};
 	onMount(() => {
-		reloadCharacters()
+		if (pb.authStore.isValid) {
+			window.location.pathname = '/';
+		}
+		reloadCharacters();
 	});
 </script>
 
@@ -377,7 +386,9 @@
 				<p class="text-red-500">{errorText}</p>
 
 				<div class="form-control mt-6">
-					<button onclick={createCP} type="submit" class="btn w-full text-lg btn-primary">Create</button>
+					<button onclick={createCP} type="submit" class="btn w-full text-lg btn-primary"
+						>Create</button
+					>
 				</div>
 			</div>
 		</div>
