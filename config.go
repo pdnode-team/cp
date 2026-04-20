@@ -72,6 +72,7 @@ func Setup(app core.App) {
 	// SMTP
 	setStringIfPresent("SENDER_NAME", &settings.Meta.SenderName)
 	setStringIfPresent("SENDER_ADDRESS", &settings.Meta.SenderAddress)
+	setBoolIfPresent("SMTP_ENABLE", &settings.SMTP.Enabled)
 	setStringIfPresent("SMTP_AUTH_METHOD", &settings.SMTP.AuthMethod)
 	setStringIfPresent("SMTP_HOST", &settings.SMTP.Host)
 	setIntIfPresent("SMTP_PORT", &settings.SMTP.Port)
