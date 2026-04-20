@@ -1,5 +1,6 @@
 <!-- 例如 Login.svelte -->
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import pb from '$lib/pocketbase';
 	import { onMount } from 'svelte';
 
@@ -10,7 +11,7 @@
 
 	onMount(() => {
 		if (pb.authStore.isValid) {
-			window.location.pathname = '/';
+			goto('/')
 		}
 	});
 
@@ -25,7 +26,7 @@
 		try {
 			await pb.collection('users').authWithPassword(email, password);
 
-			window.location.pathname = '/';
+			goto('/');
 		} catch (err: any) {
 			const errorData = err.data?.data || {};
 
