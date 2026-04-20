@@ -6,6 +6,7 @@
 
 	import pb from '$lib/pocketbase';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 
 	onMount(() => {
 		if (pb.authStore.isValid) {
@@ -38,7 +39,7 @@
 						</span>
 					</div>
 				</button>
-				<ul class="dropdown-content menu z-1 mt-3 w-52 menu-sm rounded-box bg-base-300 p-2 shadow">
+				<ul class="dropdown-content menu z-1 mt-3 w-52 menu-sm rounded-box bg-base-300 p-2 shadow flex flex-col gap-2">
 					<li>
 						<button
 							onclick={() => {
@@ -47,6 +48,9 @@
 							}}
 							class="w-full text-left text-error">Logout</button
 						>
+					</li>
+					<li>
+						<button onclick={() => goto("/mystuff")}>My Stuff</button>
 					</li>
 				</ul>
 			</div>
