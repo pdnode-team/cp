@@ -55,12 +55,12 @@ func main() {
 				})
 			}
 
-			collection, err := app.FindCollectionByNameOrId("likes")
+			collection, err := e.App.FindCollectionByNameOrId("likes")
 			if err != nil {
 				return e.InternalServerError("Internal Server Error", map[string]any{"message": "Cannot find collection", "err": err})
 			}
 
-			existingRecord, err := app.FindFirstRecordByFilter("likes",
+			existingRecord, err := e.App.FindFirstRecordByFilter("likes",
 				fmt.Sprintf("user = '%s' && target_id = '%s'", userId, targetId),
 			)
 
@@ -75,7 +75,7 @@ func main() {
 
 			if existingRecord != nil {
 
-				err = app.Delete(existingRecord)
+				err = e.App.Delete(existingRecord)
 				if err != nil {
 					return e.InternalServerError("Internal Server Error", map[string]any{
 						"message": "Cannot delete record",
@@ -96,7 +96,7 @@ func main() {
 			record.Set("target_collection", requestCollection)
 			record.Set("user", e.Auth.Id)
 
-			err = app.Save(record)
+			err = e.App.Save(record)
 
 			if err != nil {
 				return e.InternalServerError("Internal Server Error", map[string]any{
