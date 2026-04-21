@@ -1,7 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"embed"
+	"errors"
+	"fmt"
 	"io/fs"
 	"log"
 
@@ -40,6 +43,75 @@ func main() {
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		Setup(se.App)
+
+		se.Router.POST("/api/{type}/{id}/toggle-like", func(e *core.RequestEvent) error {
+			requestCollection := e.Request.PathValue("type")
+			targetId := e.Request.PathValue("id") // 被点赞物体的 ID
+			userId := e.Auth.Id
+
+			if requestCollection != "cps" && requestCollection != "characters" {
+				return e.Error(400, "Invalid request data", map[string]validation.Error{
+					"type": validation.NewError("validation_collection_type", "Invalid collection type."),
+				})
+			}
+
+			collection, err := app.FindCollectionByNameOrId("likes")
+			if err != nil {
+				return e.InternalServerError("Internal Server Error", map[string]any{"message": "Cannot find collection", "err": err})
+			}
+
+			existingRecord, err := app.FindFirstRecordByFilter("likes",
+				fmt.Sprintf("user = '%s' && target_id = '%s'", userId, targetId),
+			)
+
+			if err != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return e.InternalServerError("Internal Server Error", map[string]any{
+						"message": "Cannot find record",
+						"err":     err,
+					})
+				}
+			}
+
+			if existingRecord != nil {
+
+				err = app.Delete(existingRecord)
+				if err != nil {
+					return e.InternalServerError("Internal Server Error", map[string]any{
+						"message": "Cannot delete record",
+						"err":     err,
+					})
+				}
+
+				return e.JSON(200, map[string]any{
+					"message": "Success",
+					"like":    false,
+					"data":    existingRecord,
+				})
+			}
+
+			record := core.NewRecord(collection)
+
+			record.Set("target_id", targetId)
+			record.Set("target_collection", requestCollection)
+			record.Set("user", e.Auth.Id)
+
+			err = app.Save(record)
+
+			if err != nil {
+				return e.InternalServerError("Internal Server Error", map[string]any{
+					"message": "Cannot save record",
+					"err":     err,
+				})
+			}
+
+			return e.JSON(200, map[string]any{
+				"message": "Success",
+				"like":    true,
+				"data":    record,
+			})
+
+		}).Bind(apis.RequireAuth())
 
 		publicFS, err := fs.Sub(embeddedFiles, "pb_public")
 		if err != nil {
@@ -82,7 +154,7 @@ func validateIdImmutable(e *core.RecordRequestEvent) error {
 
 	// 检查用户有没有传入id
 	if e.Record.Id != "" {
-		return apis.NewBadRequestError("Invalid request data", map[string]validation.Error{
+		return e.BadRequestError("Invalid request data", map[string]validation.Error{
 			"id": validation.NewError("validation_id_immutable", "Custom record IDs are not allowed."),
 		})
 	}
@@ -94,7 +166,7 @@ func validateIdImmutable(e *core.RecordRequestEvent) error {
 func validateCharactersOwnership(e *core.RecordRequestEvent) error {
 
 	if e.Auth == nil {
-		return apis.NewUnauthorizedError("Unauthorized", nil)
+		return e.UnauthorizedError("Unauthorized", nil)
 	}
 
 	// Superuser 绕过
@@ -125,12 +197,12 @@ func validateCharactersOwnership(e *core.RecordRequestEvent) error {
 		Row(&count)
 
 	if err != nil {
-		return apis.NewInternalServerError("Database query failed", err)
+		return e.InternalServerError("Database query failed", err)
 	}
 
 	// 如果发现有角色不属于该用户，拦截请求
 	if count > 0 {
-		return apis.NewBadRequestError("Illegal association", map[string]validation.Error{
+		return e.Error(403, "Illegal association", map[string]validation.Error{
 			"characters": validation.NewError("invalid_character_owner", "One or more selected characters do not belong to you."),
 		})
 	}
