@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"embed"
 	"errors"
+	"fmt"
 	"io/fs"
 	"log"
 
@@ -45,7 +46,8 @@ func main() {
 
 		se.Router.POST("/api/{type}/{id}/toggle-like", func(e *core.RequestEvent) error {
 			requestCollection := e.Request.PathValue("type")
-			id := e.Request.PathValue("id")
+			targetId := e.Request.PathValue("id") // 被点赞物体的 ID
+			userId := e.Auth.Id
 
 			if requestCollection != "cps" && requestCollection != "characters" {
 				return e.Error(400, "Invalid request data", map[string]validation.Error{
@@ -53,12 +55,14 @@ func main() {
 				})
 			}
 
-			collection, err := app.FindCollectionByNameOrId(requestCollection)
+			collection, err := app.FindCollectionByNameOrId("likes")
 			if err != nil {
 				return e.InternalServerError("Internal Server Error", map[string]any{"message": "Cannot find collection", "err": err})
 			}
 
-			record, err := app.FindRecordById(requestCollection, id)
+			existingRecord, err := app.FindFirstRecordByFilter("likes",
+				fmt.Sprintf("user = '%s' && target_id = '%s'", userId, targetId),
+			)
 
 			if err != nil {
 				if !errors.Is(err, sql.ErrNoRows) {
@@ -69,9 +73,9 @@ func main() {
 				}
 			}
 
-			if record != nil {
+			if existingRecord != nil {
 
-				err = app.Delete(record)
+				err = app.Delete(existingRecord)
 				if err != nil {
 					return e.InternalServerError("Internal Server Error", map[string]any{
 						"message": "Cannot delete record",
@@ -82,15 +86,15 @@ func main() {
 				return e.JSON(200, map[string]any{
 					"message": "Success",
 					"like":    false,
-					"data":    record,
+					"data":    existingRecord,
 				})
 			}
 
-			record = core.NewRecord(collection)
+			record := core.NewRecord(collection)
 
-			record.Set("target_id", id)
+			record.Set("target_id", targetId)
 			record.Set("target_collection", requestCollection)
-			record.Set("owner", e.Auth.Id)
+			record.Set("user", e.Auth.Id)
 
 			err = app.Save(record)
 
