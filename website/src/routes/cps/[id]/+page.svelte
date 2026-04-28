@@ -59,7 +59,7 @@
 		</div>
 
 		<div class="flex flex-col items-center justify-center gap-8 md:flex-row">
-			{#each cp.expand?.characters || [] as char, i}
+			{#each cp.expand?.characters || [] as char}
 				<button class="card w-full max-w-sm border border-base-200 bg-base-100 shadow-xl cursor-pointer transition-all active:scale-95 hover:bg-base-300" onclick={() => goto(`/characters/${char.id}`)}>
 					<figure class="h-64">
 						{#if char.images?.[0]}
