@@ -1,12 +1,12 @@
 <script lang="ts">
-	import './layout.css';
+	import './layout.css'
 
-	let { children } = $props();
-	let user: any = $state();
+	let { children } = $props()
+	let user: any = $state()
 
 	import pb from '$lib/pocketbase'
 	import { goto } from '$app/navigation'
-	import { onMount } from 'svelte';
+	import { onMount } from 'svelte'
 
 	function reloadLoginStatus() {
 		if (pb.authStore.isValid) {
@@ -17,12 +17,12 @@
 		
 	}
 	pb.authStore.onChange((_, record) => {
-		user = record
-	}, true);
+		reloadLoginStatus()
+	}, true)
 
 	onMount(() => {
-		reloadLoginStatus
-	});
+		reloadLoginStatus()
+	})
 </script>
 
 <!-- 顶部导航栏 -->
@@ -53,8 +53,8 @@
 					<li>
 						<button
 							onclick={() => {
-								pb.authStore.clear();
-								window.location.reload();
+								pb.authStore.clear()
+								window.location.reload()
 							}}
 							class="w-full text-left text-error">Logout</button
 						>
