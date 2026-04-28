@@ -65,9 +65,9 @@
           </div>
         </div>
 
-        {#if char.tags_names}
+        {#if char.tag_names}
           <div class="mt-6 flex flex-wrap gap-2">
-            {#each [].concat(char.tags_names || []) as tag}
+            {#each [].concat(char.tag_names || []) as tag}
               <span class="badge badge-lg badge-outline">{tag}</span>
             {/each}
           </div>
