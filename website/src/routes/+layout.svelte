@@ -31,7 +31,7 @@
 >
 	<div class="flex-1">
 		<a href="/" class="text-xl font-bold tracking-tight transition-colors hover:text-primary">
-			Pdnode CP Website <div class="badge badge-soft">v0.5.0</div>
+			Pdnode CP Website <div class="badge badge-soft">v0.5.1</div>
 		</a>
 	</div>
 	<div class="flex-none gap-4">
