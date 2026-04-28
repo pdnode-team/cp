@@ -1,6 +1,7 @@
 <script lang="ts">
 	import pb from '$lib/pocketbase';
 	import { goto } from '$app/navigation';
+	import CharacterCreateModal from '$lib/components/CharacterCreateModal.svelte';
 
 	type ViewMode = 'cps' | 'characters';
 	let mode = $state<ViewMode>('cps');
@@ -8,22 +9,23 @@
 	let isLoading = $state(true);
 	let deleteModal = $state() as HTMLDialogElement;
 	let itemToDelete = $state<null | any>(null);
+	let openCreateCharDialog = $state(false);
 
 	const handleDelete = (item: any) => {
-		itemToDelete = item
-		deleteModal.showModal()
+		itemToDelete = item;
+		deleteModal.showModal();
 	};
 
-    const confirmDelete = async () => {
-        try {
-            await pb.collection(itemToDelete.collectionName).delete(itemToDelete.id);
-            deleteModal.close();
-            fetchMyData(mode);
-        } catch (err) {
-            alert('Delete failed. Please try again.')
-            console.error('Delete error:', err);
-        }
-    }
+	const confirmDelete = async () => {
+		try {
+			await pb.collection(itemToDelete.collectionName).delete(itemToDelete.id);
+			deleteModal.close();
+			fetchMyData(mode);
+		} catch (err) {
+			alert('Delete failed. Please try again.');
+			console.error('Delete error:', err);
+		}
+	};
 
 	async function fetchMyData(currentMode: ViewMode) {
 		// 安全守卫：如果没有登录，直接跳走
@@ -88,9 +90,13 @@
 					You haven't created any {mode === 'cps' ? 'CP' : 'characters'} yet.
 				</h2>
 				<div class="mt-4 card-actions">
-					<a href="/create" class="btn btn-primary"
-						>Create Your First {mode === 'cps' ? 'CP' : 'character'}</a
-					>
+					{#if mode === 'cps'}
+						<a href="/create" class="btn btn-primary">Create Your First CP</a>
+					{:else}
+						<button class="btn btn-primary" onclick={() => (openCreateCharDialog = true)}
+							>Create Your First Character</button
+						>
+					{/if}
 				</div>
 			</div>
 		</div>
@@ -118,16 +124,16 @@
 
 <dialog bind:this={deleteModal} class="modal">
 	<div class="modal-box border border-red-200 bg-base-100">
-		<h3 class="text-base-content text-lg font-bold">Confirm Deletion</h3>
-		<p class="text-base-content py-4">
+		<h3 class="text-lg font-bold text-base-content">Confirm Deletion</h3>
+		<p class="py-4 text-base-content">
 			Are you sure you want to delete this? This action cannot be undone.
 		</p>
 		{#if itemToDelete?.collectionName! == 'cps'}
-			<p class="text-base-content py-4">
+			<p class="py-4 text-base-content">
 				CP cannot be restored after deletion; the character still exists.
 			</p>
 		{:else}
-			<p class="text-base-content py-4">
+			<p class="py-4 text-base-content">
 				Once a character is deleted, it cannot be recovered, and the associated CP will also be
 				deleted.
 			</p>
@@ -145,3 +151,4 @@
 		<button>close</button>
 	</form>
 </dialog>
+<CharacterCreateModal bind:open={openCreateCharDialog} afterCreate={() => fetchMyData(mode)} />
