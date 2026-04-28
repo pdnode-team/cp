@@ -151,4 +151,4 @@
 		<button>close</button>
 	</form>
 </dialog>
-<CharacterCreateModal open={openCreateCharDialog} afterCreate={() => fetchMyData(mode)} />
+<CharacterCreateModal bind:open={openCreateCharDialog} afterCreate={() => fetchMyData(mode)} />
