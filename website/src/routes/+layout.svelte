@@ -4,14 +4,24 @@
 	let { children } = $props();
 	let user: any = $state();
 
-	import pb from '$lib/pocketbase';
+	import pb from '$lib/pocketbase'
+	import { goto } from '$app/navigation'
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
+
+	function reloadLoginStatus() {
+		if (pb.authStore.isValid) {
+			user = pb.authStore.record
+		} else {
+			user = null
+		}
+		
+	}
+	pb.authStore.onChange((_, record) => {
+		user = record
+	}, true);
 
 	onMount(() => {
-		if (pb.authStore.isValid) {
-			user = pb.authStore.record;
-		}
+		reloadLoginStatus
 	});
 </script>
 
