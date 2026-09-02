@@ -60,9 +60,9 @@
 	});
 </script>
 
-<div class="mx-auto max-w-6xl px-6 py-16">
-	<div class="mb-12">
-		<h1 class="text-4xl font-bold md:text-5xl">My Stuff</h1>
+<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 md:py-16">
+	<div class="mb-8 sm:mb-12">
+		<h1 class="text-3xl font-bold sm:text-4xl md:text-5xl">My Stuff</h1>
 		<p class="mt-2 text-base-content/60">Manage the CPs and Characters you've created.</p>
 
 		<div role="tablist" class="tabs-boxed mt-6 tabs w-fit">
@@ -84,9 +84,9 @@
 			<span class="loading loading-lg loading-spinner text-primary"></span>
 		</div>
 	{:else if items.length === 0}
-		<div class="card border-2 border-dashed border-base-300 bg-base-200 py-20 text-center">
+		<div class="card border-2 border-dashed border-base-300 bg-base-200 py-16 text-center sm:py-20">
 			<div class="card-body items-center">
-				<h2 class="card-title text-2xl opacity-40">
+				<h2 class="card-title text-xl opacity-40 sm:text-2xl">
 					You haven't created any {mode === 'cps' ? 'CP' : 'characters'} yet.
 				</h2>
 				<div class="mt-4 card-actions">
@@ -106,14 +106,14 @@
 				<div class="card border border-base-200 bg-base-100 shadow-xl">
 					<div class="card-body p-5">
 						<h2 class="card-title">{item.name}</h2>
-						<div class="mt-4 card-actions flex justify-end gap-1">
-							<button class="btn w-14 btn-soft btn-sm btn-error" onclick={() => handleDelete(item)}>
+						<div class="mt-4 card-actions flex flex-wrap justify-end gap-2">
+							<button class="btn btn-soft btn-sm btn-error flex-1 sm:flex-initial" onclick={() => handleDelete(item)}>
 								Delete
 							</button>
 
-							<a href="/edit/{mode}/{item.id}" class="btn w-14 btn-ghost btn-sm"> Edit </a>
+							<a href="/edit/{mode}/{item.id}" class="btn btn-ghost btn-sm flex-1 sm:flex-initial"> Edit </a>
 
-							<a href="/{mode}/{item.id}" class="btn w-14 btn-sm btn-primary"> View </a>
+							<a href="/{mode}/{item.id}" class="btn btn-sm btn-primary flex-1 sm:flex-initial"> View </a>
 						</div>
 					</div>
 				</div>
@@ -122,7 +122,7 @@
 	{/if}
 </div>
 
-<dialog bind:this={deleteModal} class="modal">
+<dialog bind:this={deleteModal} class="modal modal-bottom sm:modal-middle">
 	<div class="modal-box border border-red-200 bg-base-100">
 		<h3 class="text-lg font-bold text-base-content">Confirm Deletion</h3>
 		<p class="py-4 text-base-content">

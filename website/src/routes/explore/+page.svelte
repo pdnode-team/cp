@@ -65,11 +65,11 @@
 	});
 </script>
 
-<div class="mx-auto max-w-6xl px-6 py-16">
-	<div class="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-center">
+<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 md:py-16">
+	<div class="mb-8 flex flex-col justify-between gap-4 sm:gap-6 md:mb-12 md:flex-row md:items-center">
 		<div>
-			<h1 class="text-4xl font-bold tracking-tight md:text-5xl">Explore</h1>
-			<div role="tablist" class="tabs-boxed mt-4 tabs">
+			<h1 class="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">Explore</h1>
+			<div role="tablist" class="tabs-boxed mt-4 tabs w-fit">
 				<button
 					role="tab"
 					class="tab {mode === 'cps' ? 'tab-active' : ''}"
@@ -82,7 +82,7 @@
 				>
 			</div>
 		</div>
-		<a href="/create" class="btn btn-primary">Create New</a>
+		<a href="/create" class="btn btn-primary self-start md:self-auto">Create New</a>
 	</div>
 
 	{#if isLoading}{:else}

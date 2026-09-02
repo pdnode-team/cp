@@ -66,8 +66,8 @@
 	}
 </script>
 
-<dialog bind:this={dialogRef} onclose={() => (open = false)} class="modal">
-	<div class="modal-box flex flex-col gap-4">
+<dialog bind:this={dialogRef} onclose={() => (open = false)} class="modal modal-bottom sm:modal-middle">
+	<div class="modal-box flex max-h-[90vh] flex-col gap-4 overflow-y-auto p-5 sm:p-6">
 		<h3 class="text-lg font-bold">Create a new character</h3>
 		<div class="flex flex-col gap-4">
 			<label class="form-control w-full">
@@ -109,7 +109,7 @@
 				/>
 			</label>
 
-			<div class="form-control w-full max-w-xs">
+			<div class="form-control w-full">
 				<label class="label" for="file-upload">
 					<span class="label-text">Your Character Pictures (Option)</span>
 				</label>

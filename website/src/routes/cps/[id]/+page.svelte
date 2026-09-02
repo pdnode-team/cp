@@ -34,7 +34,7 @@
 	}
 </script>
 
-<div class="mx-auto max-w-5xl px-4 py-10">
+<div class="mx-auto max-w-5xl px-4 py-6 sm:py-10">
 	{#if isLoading}
 		<div class="flex h-64 items-center justify-center">
 			<span class="loading loading-lg loading-spinner text-primary"></span>
@@ -45,11 +45,11 @@
 			<a href="/explore" class="btn btn-sm">Back to Explore</a>
 		</div>
 	{:else}
-		<div class="mb-10 text-center">
-			<h1 class="text-5xl font-black tracking-tighter text-primary italic">
+		<div class="mb-8 text-center sm:mb-10">
+			<h1 class="break-words text-3xl font-black italic tracking-tighter text-primary sm:text-4xl md:text-5xl">
 				{cp.name}
 			</h1>
-			<div class="mt-4 flex justify-center gap-2">
+			<div class="mt-4 flex flex-wrap justify-center gap-2">
 				{#each [].concat(cp.tag_names || []) as tag}
 					{#if tag}
 						<span class="badge badge-outline">{tag}</span>
@@ -58,10 +58,10 @@
 			</div>
 		</div>
 
-		<div class="flex flex-col items-center justify-center gap-8 md:flex-row">
+		<div class="flex flex-col items-center justify-center gap-6 md:flex-row md:gap-8">
 			{#each cp.expand?.characters || [] as char}
-				<button class="card w-full max-w-sm border border-base-200 bg-base-100 shadow-xl cursor-pointer transition-all active:scale-95 hover:bg-base-300" onclick={() => goto(`/characters/${char.id}`)}>
-					<figure class="h-64">
+				<button class="card w-full max-w-sm cursor-pointer border border-base-200 bg-base-100 shadow-xl transition-all hover:bg-base-300 active:scale-95 text-left" onclick={() => goto(`/characters/${char.id}`)}>
+					<figure class="h-48 sm:h-64 bg-base-300">
 						{#if char.images?.[0]}
 							<img
 								src={pb.files.getURL(char, char.images?.[0])}
@@ -72,19 +72,23 @@
 							<p>{char.name}</p>
 						{/if}
 					</figure>
-					<div class="card-body">
-						<h3 class="card-title text-2xl">{char.name}</h3>
-						<a class="text-sm opacity-70 link" href="{char.origin}" target="_blank" rel="noopener noreferrer">{char.origin}</a>
+					<div class="card-body p-4 sm:p-6">
+						<h3 class="card-title text-xl sm:text-2xl break-words">{char.name}</h3>
+						{#if char.origin}
+							<a class="text-sm opacity-70 link break-all" href="{char.origin}" target="_blank" rel="noopener noreferrer" onclick={(e) => e.stopPropagation()}>{char.origin}</a>
+						{/if}
 					</div>
 				</button>
 			{/each}
 		</div>
 
-		<div class="mt-16 rounded-3xl bg-base-200 p-8 shadow-inner">
-			<h2 class="mb-6 text-2xl font-bold">Description</h2>
-			<div class="prose max-w-none text-lg leading-relaxed">
+		<div class="mt-10 rounded-2xl bg-base-200 p-5 shadow-inner sm:p-8 md:mt-16 md:rounded-3xl">
+			<h2 class="mb-4 text-xl font-bold sm:mb-6 sm:text-2xl">Description</h2>
+			<div class="prose max-w-none break-words text-base leading-relaxed sm:text-lg">
 				{cp.description}
 			</div>
+
+			<div class="divider my-4"></div>
 
 			<p class="text-sm text-base-content/60">
 				Author:
@@ -94,9 +98,9 @@
 			</p>
 		</div>
 
-		<div class="mt-16">
-			<h3 class="mb-6 text-xl font-bold">Gallery</h3>
-			<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+		<div class="mt-10 md:mt-16">
+			<h3 class="mb-4 text-xl font-bold sm:mb-6">Gallery</h3>
+			<div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
 				{#each cp.images as img}
 					<button
 						type="button"

@@ -1,17 +1,17 @@
-<div class="py-16 px-6 max-w-6xl mx-auto">
+<div class="py-10 sm:py-16 px-4 sm:px-6 max-w-6xl mx-auto">
   <!-- 头部介绍区域 -->
-  <div class="text-center md:text-left mb-16 max-w-3xl">
-    <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">
+  <div class="text-center md:text-left mb-10 sm:mb-16 max-w-3xl">
+    <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 sm:mb-6">
       About Pdnode CP Website
     </h1>
-    <p class="text-lg md:text-xl text-base-content/80 mb-4">
+    <p class="text-base sm:text-lg md:text-xl text-base-content/80 mb-4">
       This website was developed, published, and supported by the Pdnode team, primarily allowing users to post their favorite CPs.
     </p>
-    <p class="text-base text-base-content/60 mb-8">
+    <p class="text-sm sm:text-base text-base-content/60 mb-6 sm:mb-8">
       This project was proposed on March 30, 2026.
     </p>
     
-    <h2 class="text-2xl font-semibold mt-12 border-b border-base-200 pb-4 inline-block md:block">
+    <h2 class="text-xl sm:text-2xl font-semibold mt-8 sm:mt-12 border-b border-base-200 pb-4 inline-block md:block">
       Below you can see our Developer List
     </h2>
   </div>
