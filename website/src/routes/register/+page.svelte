@@ -46,9 +46,9 @@
 	};
 </script>
 
-<div class="flex min-h-[70vh] flex-col items-center justify-center px-4 py-12">
+<div class="flex min-h-[70vh] flex-col items-center justify-center px-4 py-8 sm:py-12">
 	<div class="card w-full max-w-md border border-base-200 bg-base-100 shadow-2xl">
-		<div class="card-body p-8">
+		<div class="card-body p-6 sm:p-8">
 			<h2 class="mb-2 text-center text-3xl font-bold">Register</h2>
 			<p class="mb-6 text-center text-base-content/60">
 				Enter your email and password below to register

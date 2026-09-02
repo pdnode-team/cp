@@ -21,7 +21,7 @@
 	}
 </script>
 
-<div class="flex w-full max-w-sm flex-col">
+<div class="flex w-full flex-col">
 	<div class="label"><span class="label-text font-medium">{title}</span></div>
 
 	<input

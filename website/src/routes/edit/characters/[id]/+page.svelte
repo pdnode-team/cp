@@ -91,10 +91,10 @@
 	});
 </script>
 
-<div class="flex min-h-[70vh] flex-col items-center justify-center px-4 py-12">
-	<div class="card w-full max-w-md bg-base-100">
+<div class="flex min-h-[70vh] flex-col items-center justify-center px-4 py-8 sm:py-12">
+	<div class="card w-full max-w-md border border-base-200 bg-base-100 shadow-xl">
 		{#if record}
-			<div class="card-body flex flex-col gap-4 p-8">
+			<div class="card-body flex flex-col gap-4 p-5 sm:p-8">
 				<h2 class="mb-2 text-center text-3xl font-bold">Update {record?.name}</h2>
 				<p class="mb-6 text-center text-base-content/60">
 					All fields must be filled out unless otherwise specified.
@@ -139,7 +139,7 @@
 						/>
 					</label>
 
-					<div class="form-control w-full max-w-xs">
+					<div class="form-control w-full">
 						<label class="label" for="file-upload">
 							<span class="label-text">Pictures (Option)</span>
 						</label>
