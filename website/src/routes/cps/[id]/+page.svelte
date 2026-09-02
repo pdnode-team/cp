@@ -84,7 +84,11 @@
 							<a href="/characters/{char.id}" class="transition-colors hover:text-primary">{char.name}</a>
 						</h3>
 						{#if char.origin}
-							<a class="text-sm opacity-70 link break-all" href="{char.origin}" target="_blank" rel="noopener noreferrer">{char.origin}</a>
+							{#if isSafeHttpUrl(char.origin)}
+								<a class="text-sm opacity-70 link break-all" href="{char.origin}" target="_blank" rel="noopener noreferrer">{char.origin}</a>
+							{:else}
+								<span class="text-sm opacity-70 break-all">{char.origin}</span>
+							{/if}
 						{/if}
 					</div>
 				</div>
