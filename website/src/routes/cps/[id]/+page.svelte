@@ -32,6 +32,11 @@
 		selectedImg = pb.files.getURL(cp, img);
 		galleryModal.showModal();
 	}
+
+	function isSafeHttpUrl(url?: string): boolean {
+		if (!url) return false;
+		return /^https?:\/\//i.test(url.trim());
+	}
 </script>
 
 <div class="mx-auto max-w-5xl px-4 py-6 sm:py-10">
@@ -60,25 +65,29 @@
 
 		<div class="flex flex-col items-center justify-center gap-6 md:flex-row md:gap-8">
 			{#each cp.expand?.characters || [] as char}
-				<button class="card w-full max-w-sm cursor-pointer border border-base-200 bg-base-100 shadow-xl transition-all hover:bg-base-300 active:scale-95 text-left" onclick={() => goto(`/characters/${char.id}`)}>
-					<figure class="h-48 sm:h-64 bg-base-300">
-						{#if char.images?.[0]}
-							<img
-								src={pb.files.getURL(char, char.images?.[0])}
-								alt={char.name}
-								class="h-full w-full object-cover object-top"
-							/>
-						{:else}
-							<p>{char.name}</p>
-						{/if}
-					</figure>
+				<div class="card w-full max-w-sm border border-base-200 bg-base-100 shadow-xl transition-all hover:bg-base-200/50">
+					<a href="/characters/{char.id}" class="block overflow-hidden rounded-t-2xl">
+						<figure class="h-48 bg-base-300 sm:h-64">
+							{#if char.images?.[0]}
+								<img
+									src={pb.files.getURL(char, char.images?.[0])}
+									alt={char.name}
+									class="h-full w-full object-cover object-top transition-transform hover:scale-105"
+								/>
+							{:else}
+								<p>{char.name}</p>
+							{/if}
+						</figure>
+					</a>
 					<div class="card-body p-4 sm:p-6">
-						<h3 class="card-title text-xl sm:text-2xl break-words">{char.name}</h3>
+						<h3 class="card-title text-xl sm:text-2xl break-words">
+							<a href="/characters/{char.id}" class="transition-colors hover:text-primary">{char.name}</a>
+						</h3>
 						{#if char.origin}
-							<a class="text-sm opacity-70 link break-all" href="{char.origin}" target="_blank" rel="noopener noreferrer" onclick={(e) => e.stopPropagation()}>{char.origin}</a>
+							<a class="text-sm opacity-70 link break-all" href="{char.origin}" target="_blank" rel="noopener noreferrer">{char.origin}</a>
 						{/if}
 					</div>
-				</button>
+				</div>
 			{/each}
 		</div>
 
